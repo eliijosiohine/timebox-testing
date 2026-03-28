@@ -82,7 +82,14 @@ Config.scales = toNameMap([
     { name: "Other Phrygian Dominant", flags: [true, true, false, false, true, true, false, true, true, false, true, false] },
     { name: "Other Piongio", flags: [true, false, true, false, false, true, false, true, false, true, false, false] },
     { name: "Other Prometheus", flags: [true, false, true, false, true, false, true, false, false, true, true, false] },
-	{ name: "Top 8 Distribution", flags: [true, true, true, true, true, true, false, true, false, true, false, false] }
+	{ name: "Average 3", flags: [true, true, true, false, false, false, false, false, false, false, false, false] },
+    { name: "Average 4", flags: [true, true, true, true, false, false, false, false, false, false, false, false] },
+    { name: "Average 5", flags: [true, true, true, true, true, false, false, false, false, false, false, false] },
+    { name: "Average 6", flags: [true, true, true, true, true, true, false, false, false, false, false, false] },
+    { name: "Average 7", flags: [true, true, true, true, true, true, false, true, false, false, false, false] },
+    { name: "Average 9", flags: [true, true, true, true, true, true, true, true, false, true, false, false] },
+    { name: "Average 10", flags: [true, true, true, true, true, true, true, true, false, true, true, false] },
+    { name: "Average 11", flags: [true, true, true, true, true, true, true, true, false, true, true, true] }
     //old scales { name: "Average Scale", flags: [true, false, true, true, true, true, false, true, true, false, true, false] },
 	// old scales { name: "Other Average Scale", flags: [true, false, true, true, true, true, false, true, false, false, false, false] }
 	
