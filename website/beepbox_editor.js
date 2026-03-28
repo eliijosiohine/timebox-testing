@@ -82,8 +82,10 @@ Config.scales = toNameMap([
     { name: "Other Phrygian Dominant", flags: [true, true, false, false, true, true, false, true, true, false, true, false] },
     { name: "Other Piongio", flags: [true, false, true, false, false, true, false, true, false, true, false, false] },
     { name: "Other Prometheus", flags: [true, false, true, false, true, false, true, false, false, true, true, false] },
-    { name: "Average Scale", flags: [true, false, true, true, true, true, false, true, true, false, true, false] },
-	{ name: "Other Average Scale", flags: [true, false, true, true, true, true, false, true, false, false, false, false] }
+	{ name: "Top 8 Distribution", flags: [true, true, true, true, true, true, false, true, false, true, false, false] }
+    //old scales { name: "Average Scale", flags: [true, false, true, true, true, true, false, true, true, false, true, false] },
+	// old scales { name: "Other Average Scale", flags: [true, false, true, true, true, true, false, true, false, false, false, false] }
+	
 	]);
   Config.keys = toNameMap([
         { name: "C", isWhiteKey: true, basePitch: 12 },
