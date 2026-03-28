@@ -31,21 +31,61 @@ var beepbox = (function (exports) {
             return wave;
         }
     }
-    Config.scales = toNameMap([
-        { name: "easy :)", realName: "pentatonic major", flags: [true, false, true, false, true, false, false, true, false, true, false, false] },
-        { name: "easy :(", realName: "pentatonic minor", flags: [true, false, false, true, false, true, false, true, false, false, true, false] },
-        { name: "island :)", realName: "ryukyu", flags: [true, false, false, false, true, true, false, true, false, false, false, true] },
-        { name: "island :(", realName: "pelog selisir", flags: [true, true, false, true, false, false, false, true, true, false, false, false] },
-        { name: "blues :)", realName: "blues major", flags: [true, false, true, true, true, false, false, true, false, true, false, false] },
-        { name: "blues :(", realName: "blues", flags: [true, false, false, true, false, true, true, true, false, false, true, false] },
-        { name: "normal :)", realName: "ionian", flags: [true, false, true, false, true, true, false, true, false, true, false, true] },
-        { name: "normal :(", realName: "aeolian", flags: [true, false, true, true, false, true, false, true, true, false, true, false] },
-        { name: "double harmonic :)", realName: "double harmonic major", flags: [true, true, false, false, true, true, false, true, true, false, false, true] },
-        { name: "double harmonic :(", realName: "double harmonic minor", flags: [true, false, true, true, false, false, true, true, true, false, false, true] },
-        { name: "strange", realName: "whole tone", flags: [true, false, true, false, true, false, true, false, true, false, true, false] },
-        { name: "expert", realName: "chromatic", flags: [true, true, true, true, true, true, true, true, true, true, true, true] },
-    ]);
-    Config.keys = toNameMap([
+Config.scales = toNameMap([
+    // --- Original Items (Retained) ---
+    { name: "Major Pentatonic", flags: [true, false, true, false, true, false, false, true, false, true, false, false] },
+    { name: "Minor Pentatonic", flags: [true, false, false, true, false, true, false, true, false, false, true, false] },
+    { name: "Ryukyu (Island)", flags: [true, false, false, false, true, true, false, true, false, false, false, true] },
+    { name: "Pelog Selisir", flags: [true, true, false, true, false, false, false, true, true, false, false, false] },
+    { name: "Major Blues", flags: [true, false, true, true, true, false, false, true, false, true, false, false] },
+    { name: "Minor Blues", flags: [true, false, false, true, false, true, true, true, false, false, true, false] },
+    { name: "Major (Ionian)", flags: [true, false, true, false, true, true, false, true, false, true, false, true] },
+    { name: "Minor Natural (Aeolian)", flags: [true, false, true, true, false, true, false, true, true, false, true, false] },
+    { name: "Double Harmonic Major", flags: [true, true, false, false, true, true, false, true, true, false, false, true] },
+    { name: "Double Harmonic Minor", flags: [true, false, true, true, false, false, true, true, true, false, false, true] },
+    { name: "Whole Tone", flags: [true, false, true, false, true, false, true, false, true, false, true, false] },
+    { name: "Chromatic", flags: [true, true, true, true, true, true, true, true, true, true, true, true] },
+
+// --- New Additions from Screenshots ---
+    // Major Category
+    { name: "Major Bebop", flags: [true, false, true, false, true, true, false, true, true, true, false, true] },
+    { name: "Major Bulgarian", flags: [true, false, true, true, false, true, true, true, false, true, false, true] },
+    { name: "Major Hexatonic", flags: [true, false, true, false, true, true, false, true, false, true, false, false] },
+    { name: "Major Persian", flags: [true, true, false, false, true, true, true, false, true, false, false, true] },
+    { name: "Major Polymode", flags: [true, true, false, true, true, true, true, true, true, false, true, true] },
+
+    // Minor Category
+    { name: "Minor Harmonic", flags: [true, false, true, true, false, true, false, true, true, false, false, true] },
+    { name: "Minor Hungarian", flags: [true, false, true, true, false, false, true, true, true, false, false, true] },
+    { name: "Minor Melodic", flags: [true, false, true, true, false, true, false, true, false, true, false, true] },
+    { name: "Minor Neapolitan", flags: [true, true, false, true, false, true, false, true, true, false, false, true] },
+    { name: "Minor Polymode", flags: [true, false, true, true, true, true, true, true, false, true, true, true] },
+    { name: "Minor Romanian", flags: [true, false, true, true, false, false, true, true, false, true, true, false] },
+
+    // Other / Modes
+    { name: "Other Arabic", flags: [true, true, false, false, true, true, true, false, true, true, false, false] },
+    { name: "Other Bebop Dominant", flags: [true, false, true, false, true, true, false, true, false, true, true, true] },
+    { name: "Other Blues Nonatonic", flags: [true, false, true, true, true, true, true, true, false, true, true, false] },
+    { name: "Other Diminished", flags: [true, false, true, true, false, true, true, false, true, true, false, true] },
+    { name: "Other Dorian", flags: [true, false, true, true, false, true, false, true, false, true, true, false] },
+    { name: "Other Eastern", flags: [true, true, false, false, true, true, false, true, true, false, false, true] },
+    { name: "Other Egyptian", flags: [true, false, true, false, false, true, false, true, false, false, true, false] },
+    { name: "Other Enigmatic", flags: [true, true, false, false, true, false, true, false, true, false, true, true] },
+    { name: "Other Hirajoshi", flags: [true, false, true, true, false, false, false, true, true, false, false, false] },
+    { name: "Other Iwato", flags: [true, true, false, false, false, true, true, false, false, false, true, false] },
+    { name: "Other Japanese Insen", flags: [true, true, false, false, false, true, false, true, false, false, true, false] },
+    { name: "Other Locrian", flags: [true, true, false, true, false, true, true, false, true, false, true, false] },
+    { name: "Other Locrian Super", flags: [true, true, false, true, true, false, true, false, true, false, true, false] },
+    { name: "Other Lydian", flags: [true, false, true, false, true, false, true, true, false, true, false, true] },
+    { name: "Other Mixolydian", flags: [true, false, true, false, true, true, false, true, false, true, true, false] },
+    { name: "Other Phrygian", flags: [true, true, false, true, false, true, false, true, true, false, true, false] },
+    { name: "Other Phrygian Dominant", flags: [true, true, false, false, true, true, false, true, true, false, true, false] },
+    { name: "Other Piongio", flags: [true, false, true, false, false, true, false, true, false, true, false, false] },
+    { name: "Other Prometheus", flags: [true, false, true, false, true, false, true, false, false, true, true, false] },
+    { name: "Average Scale", flags: [true, false, true, true, true, true, false, true, true, false, true, false] },
+	{ name: "Other Average Scale", flags: [true, false, true, true, true, true, false, true, false, false, false, false] }
+	]);
+  Config.keys = toNameMap([
         { name: "C", isWhiteKey: true, basePitch: 12 },
         { name: "C♯", isWhiteKey: false, basePitch: 13 },
         { name: "D", isWhiteKey: true, basePitch: 14 },
@@ -60,8 +100,8 @@ var beepbox = (function (exports) {
         { name: "B", isWhiteKey: true, basePitch: 23 },
     ]);
     Config.blackKeyNameParents = [-1, 1, -1, 1, -1, 1, -1, -1, 1, -1, 1, -1];
-    Config.tempoMin = 30;
-    Config.tempoMax = 300;
+    Config.tempoMin = 10;
+    Config.tempoMax = 522;
     Config.echoDelayRange = 24;
     Config.echoDelayStepTicks = 4;
     Config.echoSustainRange = 8;
@@ -72,8 +112,8 @@ var beepbox = (function (exports) {
     Config.reverbRange = 4;
     Config.reverbDelayBufferSize = 16384;
     Config.reverbDelayBufferMask = Config.reverbDelayBufferSize - 1;
-    Config.beatsPerBarMin = 3;
-    Config.beatsPerBarMax = 16;
+    Config.beatsPerBarMin = 1;
+    Config.beatsPerBarMax = 128;
     Config.barCountMin = 1;
     Config.barCountMax = 128;
     Config.instrumentCountMin = 1;
@@ -5372,18 +5412,14 @@ var beepbox = (function (exports) {
                             }
                         }
                         break;
-                    case 116:
-                        {
-                            if (beforeFour) {
-                                this.tempo = [95, 120, 151, 190][base64CharCodeToInt[compressed.charCodeAt(charIndex++)]];
-                            }
-                            else if (beforeSeven) {
-                                this.tempo = [88, 95, 103, 111, 120, 130, 140, 151, 163, 176, 190, 206, 222, 240, 259][base64CharCodeToInt[compressed.charCodeAt(charIndex++)]];
-                            }
-                            else {
+                    case 116: // Tempo command
+                        {{
+                                // Dynamic calculation using 12-bit encoding (two base64 chars)
                                 this.tempo = (base64CharCodeToInt[compressed.charCodeAt(charIndex++)] << 6) | (base64CharCodeToInt[compressed.charCodeAt(charIndex++)]);
                             }
-                            this.tempo = clamp(Config.tempoMin, Config.tempoMax + 1, this.tempo);
+                            
+                            // Automatically snap the result to your Config's defined range
+                            this.tempo = clamp(Config.tempoMin, Config.tempoMax, this.tempo);
                         }
                         break;
                     case 109:
