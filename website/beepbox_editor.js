@@ -87,6 +87,7 @@ Config.scales = toNameMap([
     { name: "Average 5", flags: [true, true, true, true, true, false, false, false, false, false, false, false] },
     { name: "Average 6", flags: [true, true, true, true, true, true, false, false, false, false, false, false] },
     { name: "Average 7", flags: [true, true, true, true, true, true, false, true, false, false, false, false] },
+	{ name: "Average 8", flags: [true, true, true, true, true, true, false, true, false, true, false, false] },
     { name: "Average 9", flags: [true, true, true, true, true, true, true, true, false, true, false, false] },
     { name: "Average 10", flags: [true, true, true, true, true, true, true, true, false, true, true, false] },
     { name: "Average 11", flags: [true, true, true, true, true, true, true, true, false, true, true, true] }
