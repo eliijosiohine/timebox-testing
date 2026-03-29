@@ -4954,7 +4954,7 @@ Config.scales = toNameMap([
             this.key = 0;
             this.loopStart = 0;
             this.loopLength = 4;
-            this.tempo = 150;
+            this.tempo = 120;
             this.beatsPerBar = 8;
             this.barCount = 16;
             this.patternsPerChannel = 8;
@@ -22453,7 +22453,11 @@ You should be redirected to the song at:<br /><br />
             this._optionsMenu = select({ style: "width: 100%;" }, option({ selected: true, disabled: true, hidden: hideSelectMenuTitlesInOptions }, "Preferences"), option({ value: "autoPlay" }, "Auto Play on Load"), option({ value: "autoFollow" }, "Automatically View Current Bar"), option({ value: "enableNotePreview" }, "Hear Preview of Added Notes"), option({ value: "showLetters" }, "Show Piano Keys"), option({ value: "showFifth" }, 'Highlight "Fifth" of Song Key'), option({ value: "notesOutsideScale" }, "Allow Adding Notes Not in Scale"), option({ value: "setDefaultScale" }, "Use Current Scale as Default"), option({ value: "showChannels" }, "Show Notes From All Channels"), option({ value: "showScrollBar" }, "Show Octave Scrollbar"), option({ value: "alwaysShowSettings" }, "Customize All Instruments"), option({ value: "instrumentCopyPaste" }, "Instrument Copy/Paste Buttons"), option({ value: "enableChannelMuting" }, "Enable Channel Muting"), option({ value: "displayBrowserUrl" }, "Display Song Data in URL"), option({ value: "layout" }, "Choose Layout..."), option({ value: "colorTheme" }, "Light Theme"), option({ value: "recordingSetup" }, "Set Up Note Recording..."));
             this._scaleSelect = buildOptions(select(), Config.scales.map(scale => scale.name));
             this._keySelect = buildOptions(select(), Config.keys.map(key => key.name).reverse());
-            this._tempoSlider = new Slider(input({ style: "margin: 0; width: 4em; flex-grow: 1; vertical-align: middle;", type: "range", min: "0", max: "14", value: "7", step: "1" }), this.doc, (oldValue, newValue) => new ChangeTempo(this.doc, oldValue, Math.round(120.0 * Math.pow(2.0, (-4.0 + newValue) / 9.0))));
+ this._tempoSlider = new Slider(input({ style: "margin: 0; width: 4em; flex-grow: 1; vertical-align: middle;", type: "range", min: "0", max: "100", value: "50", step: "1" }), this.doc, (oldValue, newValue) => {
+    // Logarithmic mapping from 0-100 to tempoMin-tempoMax
+    const newTempo = Config.tempoMin * Math.pow(Config.tempoMax / Config.tempoMin, newValue / 100.0);
+    return new ChangeTempo(this.doc, oldValue, Math.round(newTempo));
+});
             this._tempoStepper = input({ style: "width: 3em; margin-left: 0.4em; vertical-align: middle;", type: "number", step: "1" });
             this._chorusSlider = new Slider(input({ style: "margin: 0;", type: "range", min: "0", max: Config.chorusRange - 1, value: "0", step: "1" }), this.doc, (oldValue, newValue) => new ChangeChorus(this.doc, oldValue, newValue));
             this._chorusRow = div({ class: "selectRow" }, span({ class: "tip", onclick: () => this._openPrompt("chorus") }, "Chorus:"), this._chorusSlider.container);
