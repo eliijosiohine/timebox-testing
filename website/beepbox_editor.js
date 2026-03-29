@@ -82,15 +82,11 @@ Config.scales = toNameMap([
     { name: "Other Phrygian Dominant", flags: [true, true, false, false, true, true, false, true, true, false, true, false] },
     { name: "Other Piongio", flags: [true, false, true, false, false, true, false, true, false, true, false, false] },
     { name: "Other Prometheus", flags: [true, false, true, false, true, false, true, false, false, true, true, false] },
-	{ name: "Average 3", flags: [true, true, true, false, false, false, false, false, false, false, false, false] },
-    { name: "Average 4", flags: [true, true, true, true, false, false, false, false, false, false, false, false] },
-    { name: "Average 5", flags: [true, true, true, true, true, false, false, false, false, false, false, false] },
-    { name: "Average 6", flags: [true, true, true, true, true, true, false, false, false, false, false, false] },
-    { name: "Average 7", flags: [true, true, true, true, true, true, false, true, false, false, false, false] },
-	{ name: "Average 8", flags: [true, true, true, true, true, true, false, true, false, true, false, false] },
-    { name: "Average 9", flags: [true, true, true, true, true, true, true, true, false, true, false, false] },
-    { name: "Average 10", flags: [true, true, true, true, true, true, true, true, false, true, true, false] },
-    { name: "Average 11", flags: [true, true, true, true, true, true, true, true, false, true, true, true] }
+	{ name: "Other Average", flags: [true, true, true, true, true, true, false, true, false, true, false, false] },
+	{ name: "Average Pentatonic", flags: [true, true, true, true, true, false, false, false, false, false, false, false] },
+	{ name: "Average Hexatonic", flags: [true, true, true, true, true, false, false, true, false, false, false, false] },
+	{ name: "Average Heptatonic", flags: [true, true, true, true, false, false, false, true, false, true, true, false] },
+	{ name: "Average Octatonic", flags: [true, true, true, true, false, true, false, true, true, true, false, false] }
     //old scales { name: "Average Scale", flags: [true, false, true, true, true, true, false, true, true, false, true, false] },
 	// old scales { name: "Other Average Scale", flags: [true, false, true, true, true, true, false, true, false, false, false, false] }
 	
@@ -22453,7 +22449,7 @@ You should be redirected to the song at:<br /><br />
             this._optionsMenu = select({ style: "width: 100%;" }, option({ selected: true, disabled: true, hidden: hideSelectMenuTitlesInOptions }, "Preferences"), option({ value: "autoPlay" }, "Auto Play on Load"), option({ value: "autoFollow" }, "Automatically View Current Bar"), option({ value: "enableNotePreview" }, "Hear Preview of Added Notes"), option({ value: "showLetters" }, "Show Piano Keys"), option({ value: "showFifth" }, 'Highlight "Fifth" of Song Key'), option({ value: "notesOutsideScale" }, "Allow Adding Notes Not in Scale"), option({ value: "setDefaultScale" }, "Use Current Scale as Default"), option({ value: "showChannels" }, "Show Notes From All Channels"), option({ value: "showScrollBar" }, "Show Octave Scrollbar"), option({ value: "alwaysShowSettings" }, "Customize All Instruments"), option({ value: "instrumentCopyPaste" }, "Instrument Copy/Paste Buttons"), option({ value: "enableChannelMuting" }, "Enable Channel Muting"), option({ value: "displayBrowserUrl" }, "Display Song Data in URL"), option({ value: "layout" }, "Choose Layout..."), option({ value: "colorTheme" }, "Light Theme"), option({ value: "recordingSetup" }, "Set Up Note Recording..."));
             this._scaleSelect = buildOptions(select(), Config.scales.map(scale => scale.name));
             this._keySelect = buildOptions(select(), Config.keys.map(key => key.name).reverse());
- this._tempoSlider = new Slider(input({ style: "margin: 0; width: 4em; flex-grow: 1; vertical-align: middle;", type: "range", min: "0", max: "100", value: "50", step: "1" }), this.doc, (oldValue, newValue) => {
+ this._tempoSlider = new Slider(input({ style: "margin: 0; width: 4em; flex-grow: 1; vertical-align: middle;", type: "range", min: "0", max: "100", value: "63", step: "1" }), this.doc, (oldValue, newValue) => {
     // Logarithmic mapping from 0-100 to tempoMin-tempoMax
     const newTempo = Config.tempoMin * Math.pow(Config.tempoMax / Config.tempoMin, newValue / 100.0);
     return new ChangeTempo(this.doc, oldValue, Math.round(newTempo));
