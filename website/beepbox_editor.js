@@ -22558,6 +22558,7 @@ You should be redirected to the song at:<br /><br />
             this._settingsArea = div({ class: "settings-area noSelection" }, div({ class: "version-area" }, div({ style: `text-align: center; margin: 3px 0; color: ${ColorConfig.secondaryText};` }, EditorConfig.versionDisplayName, " ", a({ class: "tip", target: "_blank", href: EditorConfig.releaseNotesURL }, EditorConfig.version))), div({ class: "play-pause-area" }, div({ class: "playback-bar-controls" }, this._playButton, this._pauseButton, this._recordButton, this._stopButton, this._prevBarButton, this._nextBarButton), div({ class: "playback-volume-controls" }, span({ class: "volume-speaker" }), this._volumeSlider.container)), this._menuArea, this._songSettingsArea, this._instrumentSettingsArea);
             this.mainLayer = div({ class: "beepboxEditor", tabIndex: "0" }, this._patternArea, this._trackArea, this._settingsArea, this._promptContainer);
             this._wasPlaying = false;
+			this._tempoSlider.input.value = (100.0 * Math.log(this.doc.song.tempo / Config.tempoMin) / Math.log(Config.tempoMax / Config.tempoMin)).toString();
             this._currentPromptName = null;
             this._highlightedInstrumentIndex = -1;
             this._renderedInstrumentCount = 0;
