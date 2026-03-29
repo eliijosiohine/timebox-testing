@@ -22558,7 +22558,6 @@ You should be redirected to the song at:<br /><br />
             this._settingsArea = div({ class: "settings-area noSelection" }, div({ class: "version-area" }, div({ style: `text-align: center; margin: 3px 0; color: ${ColorConfig.secondaryText};` }, EditorConfig.versionDisplayName, " ", a({ class: "tip", target: "_blank", href: EditorConfig.releaseNotesURL }, EditorConfig.version))), div({ class: "play-pause-area" }, div({ class: "playback-bar-controls" }, this._playButton, this._pauseButton, this._recordButton, this._stopButton, this._prevBarButton, this._nextBarButton), div({ class: "playback-volume-controls" }, span({ class: "volume-speaker" }), this._volumeSlider.container)), this._menuArea, this._songSettingsArea, this._instrumentSettingsArea);
             this.mainLayer = div({ class: "beepboxEditor", tabIndex: "0" }, this._patternArea, this._trackArea, this._settingsArea, this._promptContainer);
             this._wasPlaying = false;
-			this._tempoSlider.input.value = (100.0 * Math.log(this.doc.song.tempo / Config.tempoMin) / Math.log(Config.tempoMax / Config.tempoMin)).toString();
             this._currentPromptName = null;
             this._highlightedInstrumentIndex = -1;
             this._renderedInstrumentCount = 0;
@@ -22674,9 +22673,9 @@ You should be redirected to the song at:<br /><br />
                 setSelectedValue(this._scaleSelect, this.doc.song.scale);
                 this._scaleSelect.title = Config.scales[this.doc.song.scale].realName;
                 setSelectedValue(this._keySelect, Config.keys.length - 1 - this.doc.song.key);
-                this._tempoSlider.updateValue(Math.max(0, Math.min(28, Math.round(4.0 + 9.0 * Math.log2(this.doc.song.tempo / 120.0)))));
                 this._tempoStepper.value = this.doc.song.tempo.toString();
-                setSelectedValue(this._rhythmSelect, this.doc.song.rhythm);
+// New dynamic formula:
+this._tempoSlider.value = (100.0 * Math.log(this.doc.song.tempo / Config.tempoMin) / Math.log(Config.tempoMax / Config.tempoMin)).toString();
                 if (this.doc.song.getChannelIsNoise(this.doc.channel)) {
                     this._pitchedPresetSelect.style.display = "none";
                     this._drumPresetSelect.style.display = "";
