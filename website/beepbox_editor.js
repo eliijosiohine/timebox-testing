@@ -32,7 +32,6 @@ var beepbox = (function (exports) {
         }
     }
 Config.scales = toNameMap([
-    // --- Original Items (Retained) ---
     { name: "Major Pentatonic", flags: [true, false, true, false, true, false, false, true, false, true, false, false] },
     { name: "Minor Pentatonic", flags: [true, false, false, true, false, true, false, true, false, false, true, false] },
     { name: "Ryukyu (Island)", flags: [true, false, false, false, true, true, false, true, false, false, false, true] },
@@ -45,24 +44,17 @@ Config.scales = toNameMap([
     { name: "Double Harmonic Minor", flags: [true, false, true, true, false, false, true, true, true, false, false, true] },
     { name: "Whole Tone", flags: [true, false, true, false, true, false, true, false, true, false, true, false] },
     { name: "Chromatic", flags: [true, true, true, true, true, true, true, true, true, true, true, true] },
-
-// --- New Additions from Screenshots ---
-    // Major Category
     { name: "Major Bebop", flags: [true, false, true, false, true, true, false, true, true, true, false, true] },
     { name: "Major Bulgarian", flags: [true, false, true, true, false, true, true, true, false, true, false, true] },
     { name: "Major Hexatonic", flags: [true, false, true, false, true, true, false, true, false, true, false, false] },
     { name: "Major Persian", flags: [true, true, false, false, true, true, true, false, true, false, false, true] },
     { name: "Major Polymode", flags: [true, true, false, true, true, true, true, true, true, false, true, true] },
-
-    // Minor Category
     { name: "Minor Harmonic", flags: [true, false, true, true, false, true, false, true, true, false, false, true] },
     { name: "Minor Hungarian", flags: [true, false, true, true, false, false, true, true, true, false, false, true] },
     { name: "Minor Melodic", flags: [true, false, true, true, false, true, false, true, false, true, false, true] },
     { name: "Minor Neapolitan", flags: [true, true, false, true, false, true, false, true, true, false, false, true] },
     { name: "Minor Polymode", flags: [true, false, true, true, true, true, true, true, false, true, true, true] },
     { name: "Minor Romanian", flags: [true, false, true, true, false, false, true, true, false, true, true, false] },
-
-    // Other / Modes
     { name: "Other Arabic", flags: [true, true, false, false, true, true, true, false, true, true, false, false] },
     { name: "Other Bebop Dominant", flags: [true, false, true, false, true, true, false, true, false, true, true, true] },
     { name: "Other Blues Nonatonic", flags: [true, false, true, true, true, true, true, true, false, true, true, false] },
@@ -87,9 +79,6 @@ Config.scales = toNameMap([
 	{ name: "Average Hexatonic", flags: [true, true, true, true, true, false, false, true, false, false, false, false] },
 	{ name: "Average Heptatonic", flags: [true, true, true, true, false, false, false, true, false, true, true, false] },
 	{ name: "Average Octatonic", flags: [true, true, true, true, false, true, false, true, true, true, false, false] }
-    //old scales { name: "Average Scale", flags: [true, false, true, true, true, true, false, true, true, false, true, false] },
-	// old scales { name: "Other Average Scale", flags: [true, false, true, true, true, true, false, true, false, false, false, false] }
-	
 	]);
   Config.keys = toNameMap([
         { name: "C", isWhiteKey: true, basePitch: 12 },
@@ -3444,9 +3433,9 @@ Config.scales = toNameMap([
             return max;
         }
     }
-    function validateRange(min, max, val) {
-        if (min <= val && val <= max)
-            return val;
+   function validateRange(min, max, val) {
+    return val;
+
         throw new Error(`Value ${val} not in range [${min}, ${max}]`);
     }
     const base64IntToCharCode = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 45, 95];
@@ -17696,7 +17685,7 @@ Config.scales = toNameMap([
                 guess = min;
             if (guess > max)
                 guess = max;
-            const scale = this._doc.prefs.notesOutsideScale ? Config.scales.dictionary["expert"].flags : Config.scales[this._doc.song.scale].flags;
+            const scale = this._doc.prefs.notesOutsideScale ? Config.scales.dictionary["Chromatic"].flags : Config.scales[this._doc.song.scale].flags;
             if (scale[Math.floor(guess) % Config.pitchesPerOctave] || this._doc.song.getChannelIsNoise(this._doc.channel)) {
                 return Math.floor(guess);
             }
@@ -22202,7 +22191,7 @@ You should be redirected to the song at:<br /><br />
                     versionMenu.appendChild(option$2({ value: version.time }, new Date(version.time).toLocaleString()));
                 }
                 const player = iframe({ style: "width: 100%; height: 60px; border: none; display: block;" });
-                player.src = "player/#song=" + window.localStorage.getItem(versionToKey(song.versions[0]));
+                player.src = "player./#song=" + window.localStorage.getItem(versionToKey(song.versions[0]));
                 const container = div$2({ style: "margin: 4px 0;" }, div$2({ class: "selectContainer", style: "width: 100%; margin: 2px 0;" }, versionMenu), player);
                 this._songContainer.appendChild(container);
                 versionMenu.addEventListener("change", () => {
