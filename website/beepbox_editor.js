@@ -194,7 +194,7 @@ Config.scales = toNameMap([
         `;
         
         const label = document.createElement("span");
-        label.textContent = "Time (BETA): ";
+        label.textContent = "Time Signature (BETA): ";
         label.style.fontSize = "11px";
         label.style.color = "#ccc";
         
@@ -208,7 +208,7 @@ Config.scales = toNameMap([
             min-width: 40px;
             text-align: center;
         `;
-        display.textContent = "4/4";
+        display.textContent = "8/4";
         
         container.appendChild(label);
         container.appendChild(display);
@@ -497,7 +497,7 @@ window.addEventListener('load', () => {
         { name: "arpeggio", customInterval: false, arpeggiates: true, strumParts: 0, singleTone: true },
         { name: "custom interval", customInterval: true, arpeggiates: false, strumParts: 0, singleTone: true },
     ]);
-    Config.maxChordSize = 4;
+    Config.maxChordSize = 32;
     Config.operatorCount = 4;
     Config.maxPitchOrOperatorCount = Math.max(Config.maxChordSize, Config.operatorCount);
     Config.algorithms = toNameMap([
@@ -518,22 +518,130 @@ window.addEventListener('load', () => {
     Config.operatorCarrierInterval = [0.0, 0.04, -0.073, 0.091];
     Config.operatorAmplitudeMax = 15;
     Config.operatorFrequencies = toNameMap([
-        { name: "1×", mult: 1.0, hzOffset: 0.0, amplitudeSign: 1.0 },
-        { name: "~1×", mult: 1.0, hzOffset: 1.5, amplitudeSign: -1.0 },
-        { name: "2×", mult: 2.0, hzOffset: 0.0, amplitudeSign: 1.0 },
-        { name: "~2×", mult: 2.0, hzOffset: -1.3, amplitudeSign: -1.0 },
-        { name: "3×", mult: 3.0, hzOffset: 0.0, amplitudeSign: 1.0 },
-        { name: "4×", mult: 4.0, hzOffset: 0.0, amplitudeSign: 1.0 },
-        { name: "5×", mult: 5.0, hzOffset: 0.0, amplitudeSign: 1.0 },
-        { name: "6×", mult: 6.0, hzOffset: 0.0, amplitudeSign: 1.0 },
-        { name: "7×", mult: 7.0, hzOffset: 0.0, amplitudeSign: 1.0 },
-        { name: "8×", mult: 8.0, hzOffset: 0.0, amplitudeSign: 1.0 },
-        { name: "9×", mult: 9.0, hzOffset: 0.0, amplitudeSign: 1.0 },
-        { name: "11×", mult: 11.0, hzOffset: 0.0, amplitudeSign: 1.0 },
-        { name: "13×", mult: 13.0, hzOffset: 0.0, amplitudeSign: 1.0 },
-        { name: "16×", mult: 16.0, hzOffset: 0.0, amplitudeSign: 1.0 },
-        { name: "20×", mult: 20.0, hzOffset: 0.0, amplitudeSign: 1.0 },
-    ]);
+  { name: "1×", mult: 1.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "~1×", mult: 1.0, hzOffset: 1.5, amplitudeSign: -1.0 },
+  { name: "2×", mult: 2.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "~2×", mult: 2.0, hzOffset: -1.3, amplitudeSign: -1.0 },
+  { name: "3×", mult: 3.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "4×", mult: 4.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "5×", mult: 5.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "6×", mult: 6.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "7×", mult: 7.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "8×", mult: 8.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "9×", mult: 9.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "11×", mult: 11.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "13×", mult: 13.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "16×", mult: 16.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "20×", mult: 20.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "21×", mult: 21.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "22×", mult: 22.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "23×", mult: 23.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "24×", mult: 24.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "25×", mult: 25.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "26×", mult: 26.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "27×", mult: 27.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "28×", mult: 28.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "29×", mult: 29.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "30×", mult: 30.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "31×", mult: 31.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "32×", mult: 32.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "33×", mult: 33.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "34×", mult: 34.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "35×", mult: 35.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "36×", mult: 36.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "37×", mult: 37.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "38×", mult: 38.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "39×", mult: 39.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "40×", mult: 40.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "41×", mult: 41.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "42×", mult: 42.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "43×", mult: 43.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "44×", mult: 44.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "45×", mult: 45.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "46×", mult: 46.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "47×", mult: 47.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "48×", mult: 48.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "49×", mult: 49.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "50×", mult: 50.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "51×", mult: 51.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "52×", mult: 52.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "53×", mult: 53.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "54×", mult: 54.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "55×", mult: 55.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "56×", mult: 56.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "57×", mult: 57.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "58×", mult: 58.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "59×", mult: 59.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "60×", mult: 60.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "61×", mult: 61.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "62×", mult: 62.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "63×", mult: 63.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "64×", mult: 64.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "65×", mult: 65.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "66×", mult: 66.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "67×", mult: 67.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "68×", mult: 68.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "69×", mult: 69.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "70×", mult: 70.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "71×", mult: 71.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "72×", mult: 72.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "73×", mult: 73.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "74×", mult: 74.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "75×", mult: 75.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "76×", mult: 76.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "77×", mult: 77.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "78×", mult: 78.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "79×", mult: 79.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "80×", mult: 80.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "81×", mult: 81.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "82×", mult: 82.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "83×", mult: 83.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "84×", mult: 84.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "85×", mult: 85.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "86×", mult: 86.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "87×", mult: 87.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "88×", mult: 88.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "89×", mult: 89.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "90×", mult: 90.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "91×", mult: 91.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "92×", mult: 92.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "93×", mult: 93.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "94×", mult: 94.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "95×", mult: 95.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "96×", mult: 96.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "97×", mult: 97.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "98×", mult: 98.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "99×", mult: 99.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "100×", mult: 100.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "101×", mult: 101.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "102×", mult: 102.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "103×", mult: 103.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "104×", mult: 104.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "105×", mult: 105.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "106×", mult: 106.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "107×", mult: 107.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "108×", mult: 108.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "109×", mult: 109.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "110×", mult: 110.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "111×", mult: 111.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "112×", mult: 112.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "113×", mult: 113.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "114×", mult: 114.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "115×", mult: 115.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "116×", mult: 116.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "117×", mult: 117.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "118×", mult: 118.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "119×", mult: 119.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "120×", mult: 120.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "121×", mult: 121.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "122×", mult: 122.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "123×", mult: 123.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "124×", mult: 124.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "125×", mult: 125.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "126×", mult: 126.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "127×", mult: 127.0, hzOffset: 0.0, amplitudeSign: 1.0 },
+  { name: "128×", mult: 128.0, hzOffset: 0.0, amplitudeSign: 1.0 }
+]);
     Config.envelopes = toNameMap([
         { name: "none", type: 1, speed: 0.0 },
         { name: "note size", type: 0, speed: 0.0 },
@@ -576,7 +684,44 @@ window.addEventListener('load', () => {
         { name: "1→3 2→4", indices: [[], [], [1], [2]] },
         { name: "1→4 2→3", indices: [[], [], [2], [1]] },
         { name: "1→2→3→4", indices: [[], [1], [2], [3]] },
-    ]);
+		  // --- Expanded Chains & Parallel Paths ---
+  		{ name: "4→3→2→1", indices: [[2], [3], [4], []] },
+ 		{ name: "1→2 & 3→4", indices: [[], [1], [], [3]] },
+ 		{ name: "1→2 & 2→1", indices: [[2], [1], [], []] }, // 2-operator ring
+  { name: "3→4 & 4→3", indices: [[], [], [4], [3]] }, // 2-operator ring
+  { name: "1→2→1", indices: [[2], [1], [], []] }, 
+  { name: "1→2→3", indices: [[], [1], [2], []] },
+  { name: "2→3→4", indices: [[], [], [2], [3]] },
+
+  // --- Expanded Feedback + Routing ---
+  { name: "1⟲ →2", indices: [[1], [1], [], []] },
+  { name: "2⟲ →3", indices: [[], [2], [2], []] },
+  { name: "3⟲ →4", indices: [[], [], [3], [3]] },
+  { name: "1⟲ →2→3", indices: [[1], [1], [2], []] },
+  { name: "1⟲ 2→3", indices: [[1], [], [2], []] },
+  { name: "1→2 4⟲", indices: [[], [1], [], [4]] },
+
+  // --- Broadcast (1 to many) ---
+  { name: "1→2,3,4", indices: [[], [1], [1], [1]] },
+  { name: "2→1,3,4", indices: [[2], [], [2], [2]] },
+  { name: "3→1,2,4", indices: [[3], [3], [], [3]] },
+  { name: "4→1,2,3", indices: [[4], [4], [4], []] },
+
+  // --- Convergence (many to 1) ---
+  { name: "1,2,3→4", indices: [[], [], [], [1, 2, 3]] },
+  { name: "1,2→3,4", indices: [[], [], [1, 2], [1, 2]] },
+  { name: "2,3,4→1", indices: [[2, 3, 4], [], [], []] },
+
+  // --- Complex Rings & Cross-Talk ---
+  { name: "1→2→3→4→1", indices: [[4], [1], [2], [3]] }, // Full Ring
+  { name: "1↔2 3↔4", indices: [[2], [1], [4], [3]] }, // Dual Rings
+  { name: "1→3 2→4 3→1 4→2", indices: [[3], [4], [1], [2]] }, // Cross Rings
+  { name: "1→2→4 3→4", indices: [[], [1], [], [2, 3]] },
+  { name: "1→2 1→4 2→3 4→3", indices: [[], [1], [2, 4], [1]] },
+  
+  // --- All-to-All (Caution: High Gain) ---
+  { name: "Chaos (All)", indices: [[1,2,3,4], [1,2,3,4], [1,2,3,4], [1,2,3,4]] }
+]);
     Config.chipNoiseLength = 1 << 15;
     Config.spectrumNoiseLength = 1 << 15;
     Config.spectrumBasePitch = 24;
@@ -597,13 +742,13 @@ window.addEventListener('load', () => {
     Config.supersawSpreadMax = 12;
     Config.supersawShapeMax = 6;
     Config.pitchChannelCountMin = 1;
-    Config.pitchChannelCountMax = 10;
+    Config.pitchChannelCountMax = 128;
     Config.noiseChannelCountMin = 0;
-    Config.noiseChannelCountMax = 5;
+    Config.noiseChannelCountMax = 128;
     Config.noiseInterval = 6;
     Config.pitchesPerOctave = 12;
     Config.drumCount = 12;
-    Config.pitchOctaves = 7;
+    Config.pitchOctaves = 10;
     Config.maxPitch = Config.pitchOctaves * Config.pitchesPerOctave;
     Config.maximumTonesPerChannel = Config.maxChordSize * 2;
     Config.justIntonationSemitones = [1.0 / 2.0, 8.0 / 15.0, 9.0 / 16.0, 3.0 / 5.0, 5.0 / 8.0, 2.0 / 3.0, 32.0 / 45.0, 3.0 / 4.0, 4.0 / 5.0, 5.0 / 6.0, 8.0 / 9.0, 15.0 / 16.0, 1.0, 16.0 / 15.0, 9.0 / 8.0, 6.0 / 5.0, 5.0 / 4.0, 4.0 / 3.0, 45.0 / 32.0, 3.0 / 2.0, 8.0 / 5.0, 5.0 / 3.0, 16.0 / 9.0, 15.0 / 8.0, 2.0].map(x => Math.log2(x) * Config.pitchesPerOctave);
@@ -646,7 +791,19 @@ window.addEventListener('load', () => {
         { name: "supersawDynamism", computeIndex: 33, displayName: "dynamism", interleave: false, isFilter: false, maxCount: 1, effect: null, compatibleInstruments: [8] },
         { name: "supersawSpread", computeIndex: 34, displayName: "spread", interleave: false, isFilter: false, maxCount: 1, effect: null, compatibleInstruments: [8] },
         { name: "supersawShape", computeIndex: 35, displayName: "saw↔pulse", interleave: false, isFilter: false, maxCount: 1, effect: null, compatibleInstruments: [8] },
-    ]);
+   // --- Expanded Targets ---
+  { name: "attackTime", computeIndex: 36, displayName: "attack", interleave: false, isFilter: false, maxCount: 1, effect: null, compatibleInstruments: null },
+  { name: "decayTime", computeIndex: 37, displayName: "decay", interleave: false, isFilter: false, maxCount: 1, effect: null, compatibleInstruments: null },
+  { name: "releaseTime", computeIndex: 38, displayName: "release", interleave: false, isFilter: false, maxCount: 1, effect: null, compatibleInstruments: null },
+  { name: "lfoRate", computeIndex: 39, displayName: "lfo speed", interleave: false, isFilter: false, maxCount: 1, effect: null, compatibleInstruments: null },
+  { name: "lfoDepth", computeIndex: 40, displayName: "lfo depth", interleave: false, isFilter: false, maxCount: 1, effect: null, compatibleInstruments: null },
+  { name: "reverbMix", computeIndex: 41, displayName: "reverb wet", interleave: false, isFilter: false, maxCount: 1, effect: 10, compatibleInstruments: null },
+  { name: "delayMix", computeIndex: 42, displayName: "delay wet", interleave: false, isFilter: false, maxCount: 1, effect: 11, compatibleInstruments: null },
+  { name: "bitcrush", computeIndex: 43, displayName: "bitcrush", interleave: false, isFilter: false, maxCount: 1, effect: 12, compatibleInstruments: null },
+  { name: "noiseVolume", computeIndex: 44, displayName: "noise vol", interleave: false, isFilter: false, maxCount: 1, effect: null, compatibleInstruments: [0, 5] },
+  { name: "distortion", computeIndex: 45, displayName: "distortion", interleave: false, isFilter: false, maxCount: 1, effect: 13, compatibleInstruments: null },
+  { name: "panning", computeIndex: 46, displayName: "pan", interleave: false, isFilter: false, maxCount: 1, effect: null, compatibleInstruments: null }
+]);
     function centerWave(wave) {
         let sum = 0.0;
         for (let i = 0; i < wave.length; i++)
@@ -837,8 +994,8 @@ window.addEventListener('load', () => {
             return null;
         }
     }
-    EditorConfig.version = "4.2.2";
-    EditorConfig.versionDisplayName = "BeepBox";
+    EditorConfig.version = "2.1";
+    EditorConfig.versionDisplayName = "TimeBox";
     EditorConfig.releaseNotesURL = "https://github.com/johnnesky/beepbox/releases/tag/v" + EditorConfig.version;
     EditorConfig.presetCategories = toNameMap([
         { name: "Custom Instruments", presets: toNameMap([
@@ -1060,6 +1217,122 @@ window.addEventListener('load', () => {
                 { name: "theremin", midiProgram: 40, settings: { "type": "harmonics", "eqFilter": [{ "type": "low-pass", "cutoffHz": 8000, "linearGain": 0.7071 }], "effects": ["vibrato", "reverb"], "vibrato": "heavy", "reverb": 33, "transition": "slide in pattern", "fadeInSeconds": 0.0263, "fadeOutTicks": -6, "chord": "simultaneous", "harmonics": [100, 71, 57, 43, 29, 29, 14, 14, 14, 14, 14, 14, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "unison": "none", "envelopes": [] } },
                 { name: "sonar ping", midiProgram: 121, settings: { "type": "spectrum", "eqFilter": [], "effects": ["note filter", "reverb"], "noteFilter": [{ "type": "low-pass", "cutoffHz": 1681.79, "linearGain": 0.5 }], "reverb": 33, "transition": "normal", "fadeInSeconds": 0.0125, "fadeOutTicks": 72, "chord": "simultaneous", "spectrum": [100, 43, 29, 29, 14, 14, 14, 14, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "envelopes": [{ "target": "noteFilterAllFreqs", "envelope": "twang 2" }] } },
             ]) },
+			   { 
+  name: "Testing New", 
+  presets: toNameMap([
+    { 
+      name: "physical string", 
+      midiProgram: 24, 
+      settings: { 
+        "type": "pickedString", 
+        "eqFilter": [{ "type": "low-pass", "cutoffHz": 3000, "linearGain": 1 }], 
+        "effects": ["reverb"], 
+        "reverb": 40, 
+        "transition": "normal", 
+        "sustain": 15, 
+        "tension": 80, 
+        "envelopes": [{ "target": "stringSustain", "envelope": "decay 1", "index": 0 }] 
+      } 
+    },
+    { 
+      name: "glass chime", 
+      midiProgram: 98, 
+      settings: { 
+        "type": "FM", 
+        "eqFilter": [{ "type": "high-pass", "cutoffHz": 1200, "linearGain": 1 }], 
+        "effects": ["reverb", "delay"], 
+        "reverb": 60, 
+        "delay": 30, 
+        "algorithm": "1←2 3←4", 
+        "operators": [
+          { "frequency": "11×", "amplitude": 12 }, 
+          { "frequency": "1×", "amplitude": 15 }, 
+          { "frequency": "13×", "amplitude": 10 }, 
+          { "frequency": "1×", "amplitude": 15 }
+        ], 
+        "envelopes": [{ "target": "operatorAmplitude", "envelope": "punch", "index": 0 }] 
+      } 
+    },
+    { 
+      name: "digital grit", 
+      midiProgram: 118, 
+      isNoise: true, 
+      settings: { 
+        "type": "noise", 
+        "transition": "hard", 
+        "effects": ["bitcrush"], 
+        "bitcrush": 50, 
+        "filterCutoffHz": 1500, 
+        "filterResonance": 80, 
+        "wave": "white", 
+        "envelopes": [{ "target": "noteFilterFreq", "envelope": "twang 1", "index": 0 }] 
+      } 
+    },
+    { 
+      name: "harmonic pads", 
+      midiProgram: 89, 
+      settings: { 
+        "type": "supersaw", 
+        "eqFilter": [{ "type": "low-pass", "cutoffHz": 1500, "linearGain": 1 }], 
+        "effects": ["reverb"], 
+        "reverb": 80, 
+        "fadeInSeconds": 0.5, 
+        "fadeOutTicks": -24, 
+        "pulseWidth": 30, 
+        "dynamism": 50, 
+        "spread": 100, 
+        "shape": 50, 
+        "unison": "shimmer" 
+      } 
+    },
+    { 
+      name: "fm growl", 
+      midiProgram: 38, 
+      settings: { 
+        "type": "FM", 
+        "algorithm": "1←(2←3←4)", 
+        "feedbackType": "1⟲ 4⟲", 
+        "feedbackAmplitude": 15, 
+        "operators": [
+          { "frequency": "1×", "amplitude": 15 }, 
+          { "frequency": "1×", "amplitude": 12 }, 
+          { "frequency": "2×", "amplitude": 10 }, 
+          { "frequency": "0.5×", "amplitude": 8 }
+        ], 
+        "envelopes": [{ "target": "noteFilterAllFreqs", "envelope": "flare 2", "index": 0 }] 
+      } 
+    },
+    { 
+      name: "vocaloid ahh", 
+      midiProgram: 52, 
+      settings: { 
+        "type": "chip", 
+        "eqFilter": [
+          { "type": "peak", "cutoffHz": 800, "linearGain": 2 },
+          { "type": "peak", "cutoffHz": 1200, "linearGain": 1.5 }
+        ], 
+        "effects": ["vibrato"], 
+        "vibrato": "heavy", 
+        "wave": "pulse 50%", 
+        "unison": "hum" 
+      } 
+    },
+    { 
+      name: "thumping kick", 
+      midiProgram: 116, 
+      isNoise: true, 
+      settings: { 
+        "type": "noise", 
+        "transition": "hard", 
+        "filterCutoffHz": 100, 
+        "filterResonance": 100, 
+        "wave": "retro", 
+        "envelopes": [{ "target": "noteFilterFreq", "envelope": "punch", "index": 0 }] 
+      } 
+    }
+  ])
+}
+
     ]);
 
     var __values$2 = (exports && exports.__values) || function(o) {
