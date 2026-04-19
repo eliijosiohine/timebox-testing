@@ -5368,7 +5368,7 @@ Config.chipWaves = toNameMap([
             this.beatsPerBar = 8;
             this.barCount = 16;
             this.patternsPerChannel = 8;
-            this.rhythm = 4;
+            this.rhythm = 3;
             this.layeredInstruments = false;
             this.patternInstruments = false;
             if (andResetChannels) {
