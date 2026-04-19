@@ -6921,7 +6921,7 @@ Config.chipWaves = toNameMap([
                 importedPartsPerBeat = (jsonObject["ticksPerBeat"] | 0) || 4;
                 this.rhythm = Config.rhythms.findIndex(rhythm => rhythm.stepsPerBeat === importedPartsPerBeat);
                 if (this.rhythm === -1) {
-                    this.rhythm = 1;
+                    this.rhythm = 3;
                 }
             }
             let maxInstruments = 1;
