@@ -33,54 +33,43 @@ var beepbox = (function (exports) {
         }
     }
 Config.scales = toNameMap([
-    { name: "Major Pentatonic", flags: [true, false, true, false, true, false, false, true, false, true, false, false] },
-    { name: "Minor Pentatonic", flags: [true, false, false, true, false, true, false, true, false, false, true, false] },
-    { name: "Ryukyu (Island)", flags: [true, false, false, false, true, true, false, true, false, false, false, true] },
-    { name: "Pelog Selisir", flags: [true, true, false, true, false, false, false, true, true, false, false, false] },
-    { name: "Major Blues", flags: [true, false, true, true, true, false, false, true, false, true, false, false] },
-    { name: "Minor Blues", flags: [true, false, false, true, false, true, true, true, false, false, true, false] },
-    { name: "Major (Ionian)", flags: [true, false, true, false, true, true, false, true, false, true, false, true] },
-    { name: "Minor Natural (Aeolian)", flags: [true, false, true, true, false, true, false, true, true, false, true, false] },
-    { name: "Double Harmonic Major", flags: [true, true, false, false, true, true, false, true, true, false, false, true] },
-    { name: "Double Harmonic Minor", flags: [true, false, true, true, false, false, true, true, true, false, false, true] },
-    { name: "Whole Tone", flags: [true, false, true, false, true, false, true, false, true, false, true, false] },
-    { name: "Chromatic", flags: [true, true, true, true, true, true, true, true, true, true, true, true] },
-    { name: "Major Bebop", flags: [true, false, true, false, true, true, false, true, true, true, false, true] },
-    { name: "Major Bulgarian", flags: [true, false, true, true, false, true, true, true, false, true, false, true] },
-    { name: "Major Hexatonic", flags: [true, false, true, false, true, true, false, true, false, true, false, false] },
-    { name: "Major Persian", flags: [true, true, false, false, true, true, true, false, true, false, false, true] },
-    { name: "Major Polymode", flags: [true, true, false, true, true, true, true, true, true, false, true, true] },
-    { name: "Minor Harmonic", flags: [true, false, true, true, false, true, false, true, true, false, false, true] },
-    { name: "Minor Hungarian", flags: [true, false, true, true, false, false, true, true, true, false, false, true] },
-    { name: "Minor Melodic", flags: [true, false, true, true, false, true, false, true, false, true, false, true] },
-    { name: "Minor Neapolitan", flags: [true, true, false, true, false, true, false, true, true, false, false, true] },
-    { name: "Minor Polymode", flags: [true, false, true, true, true, true, true, true, false, true, true, true] },
-    { name: "Minor Romanian", flags: [true, false, true, true, false, false, true, true, false, true, true, false] },
-    { name: "Other Arabic", flags: [true, true, false, false, true, true, true, false, true, true, false, false] },
-    { name: "Other Bebop Dominant", flags: [true, false, true, false, true, true, false, true, false, true, true, true] },
-    { name: "Other Blues Nonatonic", flags: [true, false, true, true, true, true, true, true, false, true, true, false] },
-    { name: "Other Diminished", flags: [true, false, true, true, false, true, true, false, true, true, false, true] },
-    { name: "Other Dorian", flags: [true, false, true, true, false, true, false, true, false, true, true, false] },
-    { name: "Other Eastern", flags: [true, true, false, false, true, true, false, true, true, false, false, true] },
-    { name: "Other Egyptian", flags: [true, false, true, false, false, true, false, true, false, false, true, false] },
-    { name: "Other Enigmatic", flags: [true, true, false, false, true, false, true, false, true, false, true, true] },
-    { name: "Other Hirajoshi", flags: [true, false, true, true, false, false, false, true, true, false, false, false] },
-    { name: "Other Iwato", flags: [true, true, false, false, false, true, true, false, false, false, true, false] },
-    { name: "Other Japanese Insen", flags: [true, true, false, false, false, true, false, true, false, false, true, false] },
-    { name: "Other Locrian", flags: [true, true, false, true, false, true, true, false, true, false, true, false] },
-    { name: "Other Locrian Super", flags: [true, true, false, true, true, false, true, false, true, false, true, false] },
-    { name: "Other Lydian", flags: [true, false, true, false, true, false, true, true, false, true, false, true] },
-    { name: "Other Mixolydian", flags: [true, false, true, false, true, true, false, true, false, true, true, false] },
-    { name: "Other Phrygian", flags: [true, true, false, true, false, true, false, true, true, false, true, false] },
-    { name: "Other Phrygian Dominant", flags: [true, true, false, false, true, true, false, true, true, false, true, false] },
-    { name: "Other Piongio", flags: [true, false, true, false, false, true, false, true, false, true, false, false] },
-    { name: "Other Prometheus", flags: [true, false, true, false, true, false, true, false, false, true, true, false] },
-    { name: "Other Average", flags: [true, true, true, true, true, true, false, true, false, true, false, false] },
-    { name: "Average Pentatonic", flags: [true, true, true, true, true, false, false, false, false, false, false, false] },
-    { name: "Average Hexatonic", flags: [true, true, true, true, true, false, false, true, false, false, false, false] },
-    { name: "Average Heptatonic", flags: [true, true, true, true, false, false, false, true, false, true, true, false] },
-    { name: "Average Octatonic", flags: [true, true, true, true, false, true, false, true, true, true, false, false] }
-    ]);
+{ name: "Major (Ionian)", flags: [true, false, true, false, true, true, false, true, false, true, false, true] },
+{ name: "Major Bebop", flags: [true, false, true, false, true, true, false, true, true, true, false, true] },
+{ name: "Major Bulgarian", flags: [true, false, true, false, false, true, true, false, true, true, false, true] },
+{ name: "Major Hexatonic", flags: [true, false, true, false, true, true, false, true, false, true, false, false] },
+{ name: "Major Pentatonic", flags: [true, false, true, false, true, false, false, true, false, true, false, false] },
+{ name: "Major Persian", flags: [true, true, false, false, true, true, true, false, true, false, false, true] },
+{ name: "Major Polymode", flags: [true, false, true, true, false, true, true, false, true, false, true, true] },
+{ name: "Minor Harmonic", flags: [true, false, true, true, false, true, false, true, true, false, false, true] },
+{ name: "Minor Hungarian", flags: [true, false, true, true, false, false, true, true, true, false, false, true] },
+{ name: "Minor Melodic", flags: [true, false, true, true, false, true, false, true, false, true, false, true] },
+{ name: "Minor Natural (Aeolian)", flags: [true, false, true, true, false, true, false, true, true, false, true, false] },
+{ name: "Minor Neapolitan", flags: [true, true, false, true, false, true, false, true, true, false, false, true] },
+{ name: "Minor Pentatonic", flags: [true, false, false, true, false, true, false, true, false, false, true, false] },
+{ name: "Minor Polymode", flags: [true, true, true, false, true, true, false, true, true, false, true, false] },
+{ name: "Minor Romanian", flags: [true, false, true, true, false, false, true, true, false, true, true, false] },
+{ name: "Other Arabic", flags: [true, true, false, false, true, true, false, true, true, false, false, true] },
+{ name: "Other Bebop Dominant", flags: [true, false, true, false, true, true, false, true, false, true, true, true] },
+{ name: "Other Blues Nonatonic", flags: [true, false, true, true, true, true, true, true, false, true, true, false] },
+{ name: "Other Blues", flags: [true, false, false, true, false, true, true, true, false, false, true, false] },
+{ name: "Other Diminished", flags: [true, false, true, true, false, true, true, false, true, true, false, true] },
+{ name: "Other Dorian", flags: [true, false, true, true, false, true, false, true, false, true, true, false] },
+{ name: "Other Eastern", flags: [true, false, true, true, false, true, false, true, true, false, true, true] },
+{ name: "Other Egyptian", flags: [true, false, true, false, false, true, false, true, false, false, true, false] },
+{ name: "Other Enigmatic", flags: [true, true, false, false, true, false, true, false, true, false, true, true] },
+{ name: "Other Hirajoshi", flags: [true, false, true, true, false, false, false, true, true, false, false, false] },
+{ name: "Other Iwato", flags: [true, true, false, false, false, true, true, false, false, false, true, false] },
+{ name: "Other Japanese Insen", flags: [true, true, false, false, false, true, false, true, false, false, true, false] },
+{ name: "Other Locrian Super", flags: [true, true, false, true, true, false, true, false, true, false, true, false] },
+{ name: "Other Locrian", flags: [true, true, false, true, false, true, true, false, true, false, true, false] },
+{ name: "Other Lydian", flags: [true, false, true, false, true, false, true, true, false, true, false, true] },
+{ name: "Other Mixolydian", flags: [true, false, true, false, true, true, false, true, false, true, true, false] },
+{ name: "Other Neapolitan", flags: [true, true, false, true, false, true, false, true, false, true, false, true] },
+{ name: "Other Phrygian Dominant", flags: [true, true, false, false, true, true, false, true, true, false, true, false] },
+{ name: "Other Phrygian", flags: [true, true, false, true, false, true, false, true, true, false, true, false] },
+{ name: "Other Piongio", flags: [true, false, true, false, false, true, false, true, false, true, true, false] },
+{ name: "Other Prometheus", flags: [true, false, true, false, true, false, true, false, false, true, true, false] },
+{ name: "Other Whole Tone", flags: [true, false, true, false, true, false, true, false, true, false, true, false] },
   Config.keys = toNameMap([
         { name: "C", isWhiteKey: true, basePitch: 12 },
         { name: "C♯", isWhiteKey: false, basePitch: 13 },
@@ -419,24 +408,62 @@ window.addEventListener('load', () => {
     Config.pickedStringBaseExpression = 0.025;
     Config.distortionBaseVolume = 0.011;
     Config.bitcrusherBaseVolume = 0.010;
-    Config.chipWaves = toNameMap([
-        { name: "rounded", expression: 0.94, samples: centerWave([0.0, 0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.95, 0.9, 0.85, 0.8, 0.7, 0.6, 0.5, 0.4, 0.2, 0.0, -0.2, -0.4, -0.5, -0.6, -0.7, -0.8, -0.85, -0.9, -0.95, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -0.95, -0.9, -0.85, -0.8, -0.7, -0.6, -0.5, -0.4, -0.2]) },
-        { name: "triangle", expression: 1.0, samples: centerWave([1.0 / 15.0, 3.0 / 15.0, 5.0 / 15.0, 7.0 / 15.0, 9.0 / 15.0, 11.0 / 15.0, 13.0 / 15.0, 15.0 / 15.0, 15.0 / 15.0, 13.0 / 15.0, 11.0 / 15.0, 9.0 / 15.0, 7.0 / 15.0, 5.0 / 15.0, 3.0 / 15.0, 1.0 / 15.0, -1.0 / 15.0, -3.0 / 15.0, -5.0 / 15.0, -7.0 / 15.0, -9.0 / 15.0, -11.0 / 15.0, -13.0 / 15.0, -15.0 / 15.0, -15.0 / 15.0, -13.0 / 15.0, -11.0 / 15.0, -9.0 / 15.0, -7.0 / 15.0, -5.0 / 15.0, -3.0 / 15.0, -1.0 / 15.0]) },
-        { name: "square", expression: 0.5, samples: centerWave([1.0, -1.0]) },
-        { name: "1/4 pulse", expression: 0.5, samples: centerWave([1.0, -1.0, -1.0, -1.0]) },
-        { name: "1/8 pulse", expression: 0.5, samples: centerWave([1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0]) },
-        { name: "sawtooth", expression: 0.65, samples: centerWave([1.0 / 31.0, 3.0 / 31.0, 5.0 / 31.0, 7.0 / 31.0, 9.0 / 31.0, 11.0 / 31.0, 13.0 / 31.0, 15.0 / 31.0, 17.0 / 31.0, 19.0 / 31.0, 21.0 / 31.0, 23.0 / 31.0, 25.0 / 31.0, 27.0 / 31.0, 29.0 / 31.0, 31.0 / 31.0, -31.0 / 31.0, -29.0 / 31.0, -27.0 / 31.0, -25.0 / 31.0, -23.0 / 31.0, -21.0 / 31.0, -19.0 / 31.0, -17.0 / 31.0, -15.0 / 31.0, -13.0 / 31.0, -11.0 / 31.0, -9.0 / 31.0, -7.0 / 31.0, -5.0 / 31.0, -3.0 / 31.0, -1.0 / 31.0]) },
-        { name: "double saw", expression: 0.5, samples: centerWave([0.0, -0.2, -0.4, -0.6, -0.8, -1.0, 1.0, -0.8, -0.6, -0.4, -0.2, 1.0, 0.8, 0.6, 0.4, 0.2]) },
-        { name: "double pulse", expression: 0.4, samples: centerWave([1.0, 1.0, 1.0, 1.0, 1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, -1.0, -1.0, -1.0]) },
-        { name: "spiky", expression: 0.4, samples: centerWave([1.0, -1.0, 1.0, -1.0, 1.0, 0.0]) },
-    ]);
-    Config.chipNoises = toNameMap([
-        { name: "retro", expression: 0.25, basePitch: 69, pitchFilterMult: 1024.0, isSoft: false, samples: null },
-        { name: "white", expression: 1.0, basePitch: 69, pitchFilterMult: 8.0, isSoft: true, samples: null },
-        { name: "clang", expression: 0.4, basePitch: 69, pitchFilterMult: 1024.0, isSoft: false, samples: null },
-        { name: "buzz", expression: 0.3, basePitch: 69, pitchFilterMult: 1024.0, isSoft: false, samples: null },
-        { name: "hollow", expression: 1.5, basePitch: 96, pitchFilterMult: 1.0, isSoft: true, samples: null },
-    ]);
+Config.chipWaves = toNameMap([
+    { name: "rounded", expression: 0.94, samples: centerWave([0.0, 0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.95, 0.9, 0.85, 0.8, 0.7, 0.6, 0.5, 0.4, 0.2, 0.0, -0.2, -0.4, -0.5, -0.6, -0.7, -0.8, -0.85, -0.9, -0.95, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -0.95, -0.9, -0.85, -0.8, -0.7, -0.6, -0.5, -0.4, -0.2]) },
+    { name: "triangle", expression: 1.0, samples: centerWave([1.0 / 15.0, 3.0 / 15.0, 5.0 / 15.0, 7.0 / 15.0, 9.0 / 15.0, 11.0 / 15.0, 13.0 / 15.0, 15.0 / 15.0, 15.0 / 15.0, 13.0 / 15.0, 11.0 / 15.0, 9.0 / 15.0, 7.0 / 15.0, 5.0 / 15.0, 3.0 / 15.0, 1.0 / 15.0, -1.0 / 15.0, -3.0 / 15.0, -5.0 / 15.0, -7.0 / 15.0, -9.0 / 15.0, -11.0 / 15.0, -13.0 / 15.0, -15.0 / 15.0, -15.0 / 15.0, -13.0 / 15.0, -11.0 / 15.0, -9.0 / 15.0, -7.0 / 15.0, -5.0 / 15.0, -3.0 / 15.0, -1.0 / 15.0]) },
+    { name: "square", expression: 0.5, samples: centerWave([1.0, -1.0]) },
+    { name: "1/4 pulse", expression: 0.5, samples: centerWave([1.0, -1.0, -1.0, -1.0]) },
+    { name: "1/8 pulse", expression: 0.5, samples: centerWave([1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0]) },
+    { name: "1/16 pulse", expression: 0.5, samples: centerWave([1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0]) },
+    { name: "1/32 pulse", expression: 0.5, samples: centerWave([1.0, ...Array(31).fill(-1.0)]) },
+    { name: "sawtooth", expression: 0.65, samples: centerWave([1.0 / 31.0, 3.0 / 31.0, 5.0 / 31.0, 7.0 / 31.0, 9.0 / 31.0, 11.0 / 31.0, 13.0 / 31.0, 15.0 / 31.0, 17.0 / 31.0, 19.0 / 31.0, 21.0 / 31.0, 23.0 / 31.0, 25.0 / 31.0, 27.0 / 31.0, 29.0 / 31.0, 31.0 / 31.0, -31.0 / 31.0, -29.0 / 31.0, -27.0 / 31.0, -25.0 / 31.0, -23.0 / 31.0, -21.0 / 31.0, -19.0 / 31.0, -17.0 / 31.0, -15.0 / 31.0, -13.0 / 31.0, -11.0 / 31.0, -9.0 / 31.0, -7.0 / 31.0, -5.0 / 31.0, -3.0 / 31.0, -1.0 / 31.0]) },
+    { name: "ramp", expression: 0.65, samples: centerWave([-1.0, -0.5, 0.0, 0.5, 1.0]) },
+    { name: "double saw", expression: 0.5, samples: centerWave([0.0, -0.2, -0.4, -0.6, -0.8, -1.0, 1.0, -0.8, -0.6, -0.4, -0.2, 1.0, 0.8, 0.6, 0.4, 0.2]) },
+    { name: "double pulse", expression: 0.4, samples: centerWave([1.0, 1.0, 1.0, 1.0, 1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, -1.0, -1.0, -1.0]) },
+    { name: "tri-pulse", expression: 0.6, samples: centerWave([1.0, 1.0, 0.0, -1.0, -1.0, 0.0]) },
+    { name: "staircase", expression: 0.7, samples: centerWave([1.0, 0.5, 0.0, -0.5, -1.0, -0.5, 0.0, 0.5]) },
+    { name: "spiky", expression: 0.4, samples: centerWave([1.0, -1.0, 1.0, -1.0, 1.0, 0.0]) },
+    { name: "sine", expression: 0.8, samples: centerWave([0.0, 0.707, 1.0, 0.707, 0.0, -0.707, -1.0, -0.707]) },
+    { name: "trapezoid", expression: 0.85, samples: centerWave([0.0, 0.5, 1.0, 1.0, 1.0, 0.5, 0.0, -0.5, -1.0, -1.0, -1.0, -0.5]) },
+    { name: "3/8 pulse", expression: 0.5, samples: centerWave([1.0, 1.0, 1.0, -1.0, -1.0, -1.0, -1.0, -1.0]) },
+    { name: "organ", expression: 0.6, samples: centerWave([1.0, 1.0, 0.5, 0.0, -0.5, -1.0, -1.0, -0.5, 0.0, 0.5]) },
+    { name: "metallic", expression: 0.45, samples: centerWave([1.0, -0.8, 0.6, -0.4, 0.2, 0.0, -0.2, 0.4, -0.6, 0.8, -1.0]) },
+    { name: "stepped triangle", expression: 0.9, samples: centerWave([0.0, 0.5, 1.0, 0.5, 0.0, -0.5, -1.0, -0.5]) },
+    { name: "bit-reduced sine", expression: 0.75, samples: centerWave([0, 0.5, 1, 1, 0.5, 0, -0.5, -1, -1, -0.5]) },
+    { name: "pulse-saw", expression: 0.55, samples: centerWave([1.0, 0.5, 0.0, -0.5, -1.0, -1.0, -1.0, -1.0]) },
+    { name: "dual triangle", expression: 0.8, samples: centerWave([0, 1, 0, 1, 0, -1, 0, -1]) },
+    { name: "shimmer", expression: 0.4, samples: centerWave([1, -1, 1, -1, 0.5, -0.5, 0.5, -0.5, 0.2, -0.2]) },
+    { name: "fuzzed", expression: 0.5, samples: centerWave([1, 0.9, 1, 0.8, -1, -0.9, -1, -0.8]) },
+    { name: "v-shape", expression: 0.7, samples: centerWave([1.0, 0.5, 0.0, 0.5, 1.0, -1.0, -0.5, 0.0, -0.5, -1.0]) }
+]);
+
+  Config.chipNoises = toNameMap([
+    { name: "retro", expression: 0.25, basePitch: 69, pitchFilterMult: 1024.0, isSoft: false, samples: null },
+    { name: "white", expression: 1.0, basePitch: 69, pitchFilterMult: 8.0, isSoft: true, samples: null },
+    { name: "clang", expression: 0.4, basePitch: 69, pitchFilterMult: 1024.0, isSoft: false, samples: null },
+    { name: "buzz", expression: 0.3, basePitch: 69, pitchFilterMult: 1024.0, isSoft: false, samples: null },
+    { name: "hollow", expression: 1.5, basePitch: 96, pitchFilterMult: 1.0, isSoft: true, samples: null },
+    { name: "static", expression: 0.8, basePitch: 60, pitchFilterMult: 2048.0, isSoft: false, samples: null },
+    { name: "hum", expression: 1.2, basePitch: 40, pitchFilterMult: 0.5, isSoft: true, samples: null },
+    { name: "grit", expression: 0.35, basePitch: 72, pitchFilterMult: 512.0, isSoft: false, samples: null },
+    { name: "steam", expression: 0.9, basePitch: 108, pitchFilterMult: 16.0, isSoft: true, samples: null },
+    { name: "crush", expression: 0.5, basePitch: 50, pitchFilterMult: 256.0, isSoft: false, samples: null },
+    { name: "ocean", expression: 1.4, basePitch: 80, pitchFilterMult: 4.0, isSoft: true, samples: null },
+    { name: "pulse noise", expression: 0.3, basePitch: 69, pitchFilterMult: 128.0, isSoft: false, samples: null },
+    { name: "tinny", expression: 0.45, basePitch: 90, pitchFilterMult: 1024.0, isSoft: false, samples: null },
+    // --- EVEN MORE ADDITIONS ---
+    { name: "radio", expression: 0.6, basePitch: 75, pitchFilterMult: 4096.0, isSoft: false, samples: null },
+    { name: "rumble", expression: 1.6, basePitch: 24, pitchFilterMult: 0.25, isSoft: true, samples: null },
+    { name: "geiger", expression: 0.3, basePitch: 110, pitchFilterMult: 512.0, isSoft: false, samples: null },
+    { name: "vinyl", expression: 0.4, basePitch: 69, pitchFilterMult: 2.0, isSoft: true, samples: null },
+    { name: "bit-rot", expression: 0.55, basePitch: 40, pitchFilterMult: 512.0, isSoft: false, samples: null },
+    { name: "void", expression: 1.8, basePitch: 120, pitchFilterMult: 0.1, isSoft: true, samples: null },
+    { name: "clutter", expression: 0.45, basePitch: 85, pitchFilterMult: 8192.0, isSoft: false, samples: null },
+    { name: "friction", expression: 0.7, basePitch: 55, pitchFilterMult: 32.0, isSoft: true, samples: null },
+    { name: "spark", expression: 0.2, basePitch: 100, pitchFilterMult: 2048.0, isSoft: false, samples: null },
+    { name: "dust", expression: 1.1, basePitch: 88, pitchFilterMult: 12.0, isSoft: true, samples: null },
+]);
+
     Config.filterFreqStep = 1.0 / 4.0;
     Config.filterFreqRange = 34;
     Config.filterFreqReferenceSetting = 28;
@@ -1217,119 +1244,6 @@ window.addEventListener('load', () => {
                 { name: "theremin", midiProgram: 40, settings: { "type": "harmonics", "eqFilter": [{ "type": "low-pass", "cutoffHz": 8000, "linearGain": 0.7071 }], "effects": ["vibrato", "reverb"], "vibrato": "heavy", "reverb": 33, "transition": "slide in pattern", "fadeInSeconds": 0.0263, "fadeOutTicks": -6, "chord": "simultaneous", "harmonics": [100, 71, 57, 43, 29, 29, 14, 14, 14, 14, 14, 14, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "unison": "none", "envelopes": [] } },
                 { name: "sonar ping", midiProgram: 121, settings: { "type": "spectrum", "eqFilter": [], "effects": ["note filter", "reverb"], "noteFilter": [{ "type": "low-pass", "cutoffHz": 1681.79, "linearGain": 0.5 }], "reverb": 33, "transition": "normal", "fadeInSeconds": 0.0125, "fadeOutTicks": 72, "chord": "simultaneous", "spectrum": [100, 43, 29, 29, 14, 14, 14, 14, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "envelopes": [{ "target": "noteFilterAllFreqs", "envelope": "twang 2" }] } },
             ]) },
-			   { 
-  name: "Testing New", 
-  presets: toNameMap([
-    { 
-      name: "physical string", 
-      midiProgram: 24, 
-      settings: { 
-        "type": "pickedString", 
-        "eqFilter": [{ "type": "low-pass", "cutoffHz": 3000, "linearGain": 1 }], 
-        "effects": ["reverb"], 
-        "reverb": 40, 
-        "transition": "normal", 
-        "sustain": 15, 
-        "tension": 80, 
-        "envelopes": [{ "target": "stringSustain", "envelope": "decay 1", "index": 0 }] 
-      } 
-    },
-    { 
-      name: "glass chime", 
-      midiProgram: 98, 
-      settings: { 
-        "type": "FM", 
-        "eqFilter": [{ "type": "high-pass", "cutoffHz": 1200, "linearGain": 1 }], 
-        "effects": ["reverb", "delay"], 
-        "reverb": 60, 
-        "delay": 30, 
-        "algorithm": "1←2 3←4", 
-        "operators": [
-          { "frequency": "11×", "amplitude": 12 }, 
-          { "frequency": "1×", "amplitude": 15 }, 
-          { "frequency": "13×", "amplitude": 10 }, 
-          { "frequency": "1×", "amplitude": 15 }
-        ], 
-        "envelopes": [{ "target": "operatorAmplitude", "envelope": "punch", "index": 0 }] 
-      } 
-    },
-    { 
-      name: "digital grit", 
-      midiProgram: 118, 
-      isNoise: true, 
-      settings: { 
-        "type": "noise", 
-        "transition": "hard", 
-        "effects": ["bitcrush"], 
-        "bitcrush": 50, 
-        "filterCutoffHz": 1500, 
-        "filterResonance": 80, 
-        "wave": "white", 
-        "envelopes": [{ "target": "noteFilterFreq", "envelope": "twang 1", "index": 0 }] 
-      } 
-    },
-    { 
-      name: "harmonic pads", 
-      midiProgram: 89, 
-      settings: { 
-        "type": "supersaw", 
-        "eqFilter": [{ "type": "low-pass", "cutoffHz": 1500, "linearGain": 1 }], 
-        "effects": ["reverb"], 
-        "reverb": 80, 
-        "fadeInSeconds": 0.5, 
-        "fadeOutTicks": -24, 
-        "pulseWidth": 30, 
-        "dynamism": 50, 
-        "spread": 100, 
-        "shape": 50, 
-        "unison": "shimmer" 
-      } 
-    },
-    { 
-      name: "fm growl", 
-      midiProgram: 38, 
-      settings: { 
-        "type": "FM", 
-        "algorithm": "1←(2←3←4)", 
-        "feedbackType": "1⟲ 4⟲", 
-        "feedbackAmplitude": 15, 
-        "operators": [
-          { "frequency": "1×", "amplitude": 15 }, 
-          { "frequency": "1×", "amplitude": 12 }, 
-          { "frequency": "2×", "amplitude": 10 }, 
-          { "frequency": "0.5×", "amplitude": 8 }
-        ], 
-        "envelopes": [{ "target": "noteFilterAllFreqs", "envelope": "flare 2", "index": 0 }] 
-      } 
-    },
-    { 
-      name: "vocaloid ahh", 
-      midiProgram: 52, 
-      settings: { 
-        "type": "chip", 
-        "eqFilter": [
-          { "type": "peak", "cutoffHz": 800, "linearGain": 2 },
-          { "type": "peak", "cutoffHz": 1200, "linearGain": 1.5 }
-        ], 
-        "effects": ["vibrato"], 
-        "vibrato": "heavy", 
-        "wave": "pulse 50%", 
-        "unison": "hum" 
-      } 
-    },
-    { 
-      name: "thumping kick", 
-      midiProgram: 116, 
-      isNoise: true, 
-      settings: { 
-        "type": "noise", 
-        "transition": "hard", 
-        "filterCutoffHz": 100, 
-        "filterResonance": 100, 
-        "wave": "retro", 
-        "envelopes": [{ "target": "noteFilterFreq", "envelope": "punch", "index": 0 }] 
-      } 
-    }
   ])
 }
 
