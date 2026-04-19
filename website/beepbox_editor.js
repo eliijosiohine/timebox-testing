@@ -24377,59 +24377,6 @@ this._tempoSlider.value = (100.0 * Math.log(this.doc.song.tempo / Config.tempoMi
             }
             this._updateLayoutOption();
             beepboxEditorContainer.appendChild(this.mainLayer);
-			            // ====================== COSMIC TIMEBOX THEME ======================
-            // Makes the editor match the starry purple background of index.html
-            const cosmicStyle = document.createElement("style");
-            cosmicStyle.id = "timebox-cosmic-theme";
-            cosmicStyle.textContent = `
-                #beepboxEditorContainer,
-                #beepboxEditorContainer * {
-                    background: rgba(15, 8, 35, 0.95) !important;
-                    backdrop-filter: blur(8px) !important;
-                }
-                .menu-area,
-                .song-settings-area,
-                .instrument-settings-area,
-                .promptContainer {
-                    background: rgba(20, 12, 45, 0.95) !important;
-                    border-color: rgba(140, 110, 255, 0.3) !important;
-                }
-                .pattern-area,
-                .track-area,
-                .trackAndMuteContainer {
-                    background: rgba(10, 6, 32, 0.97) !important;
-                }
-                button,
-                select,
-                input[type="range"] {
-                    background: rgba(45, 30, 90, 0.9) !important;
-                    border: 1px solid rgba(170, 140, 255, 0.45) !important;
-                    color: #e8dfff !important;
-                }
-                button:hover {
-                    background: rgba(90, 55, 180, 0.95) !important;
-                }
-                #beepbox,
-                #beepbox * {
-                    color: #e0d4ff !important;
-                }
-                .tip,
-                label,
-                .selectRow {
-                    color: #b8a8ff !important;
-                }
-                .selected,
-                .lit,
-                .playing {
-                    background-color: rgba(150, 100, 255, 0.4) !important;
-                }
-                .time-signature-control {
-                    background-color: rgba(35, 22, 75, 0.95) !important;
-                    border: 1px solid rgba(170, 130, 255, 0.5) !important;
-                }
-            `;
-            document.head.appendChild(cosmicStyle);
-            // ====================== END COSMIC TIMEBOX THEME ======================
             this.whenUpdated();
             this.mainLayer.focus();
             if (!isMobile && this.doc.prefs.autoPlay) {
