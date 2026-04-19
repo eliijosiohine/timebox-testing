@@ -216,6 +216,13 @@ Config.scales = toNameMap([
     const doc = window.beepboxEditor?.doc || window.currentSong?.doc; // fallback
     if (!doc || !doc.song) return;
     const song = doc.song;
+    
+    // Ensure rhythm index is valid
+    if (song.rhythm < 0 || song.rhythm >= Config.rhythms.length) {
+        console.warn("Invalid rhythm index:", song.rhythm, "defaulting to 4");
+        song.rhythm = 4;
+    }
+    
     const numerator = song.beatsPerBar;
     const denominator = Config.rhythms[song.rhythm] ? Config.rhythms[song.rhythm].stepsPerBeat : 4;
     timeSignatureDisplay.textContent = numerator + "/" + denominator;
@@ -225,6 +232,9 @@ Config.scales = toNameMap([
     const doc = window.beepboxEditor?.doc;
     if (!doc || !doc.song) return;
     const song = doc.song;
+    
+    // Debug: log current state
+    console.log("Dialog opened - song.rhythm:", song.rhythm, "song.beatsPerBar:", song.beatsPerBar);
         
         const overlay = document.createElement("div");
         overlay.style.cssText = `position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:10000;`;
@@ -264,7 +274,7 @@ Config.scales = toNameMap([
             const rhythm = Config.rhythms[i];
             const opt = document.createElement("option");
             opt.value = i;
-            opt.textContent = "" + rhythm.name + "";
+            opt.textContent = "÷" + rhythm.stepsPerBeat + " (" + rhythm.name + ")";
             opt.selected = (i === song.rhythm);
             rhythmSelect.appendChild(opt);
         }
