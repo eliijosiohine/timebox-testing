@@ -19028,41 +19028,25 @@ Config.chipWaves = toNameMap([
             this._boxes = [];
             this.container = HTML.div({ class: "channelRow" });
         }
-        render() {
-            const barWidth = this._doc.getBarWidth();
-            if (this._boxes.length != this._doc.song.barCount) {
-                for (let x = this._boxes.length; x < this._doc.song.barCount; x++) {
-                    const box = new Box(this.index, ColorConfig.getChannelColor(this._doc.song, this.index).secondaryChannel);
-                    box.setWidth(barWidth);
-                    this.container.appendChild(box.container);
-                    this._boxes[x] = box;
-                }
-                for (let x = this._doc.song.barCount; x < this._boxes.length; x++) {
-                    this.container.removeChild(this._boxes[x].container);
-                }
-                this._boxes.length = this._doc.song.barCount;
-            }
-            if (this._renderedBarWidth != barWidth) {
-                this._renderedBarWidth = barWidth;
-                for (let x = 0; x < this._boxes.length; x++) {
-                    this._boxes[x].setWidth(barWidth);
-                }
-            }
-            for (let i = 0; i < this._boxes.length; i++) {
-                const pattern = this._doc.song.getPattern(this.index, i);
-                const selected = (i === this._doc.bar && this.index === this._doc.channel);
-                const dim = (pattern === null || pattern.notes.length === 0);
-                const box = this._boxes[i];
-                if (i < this._doc.song.barCount) {
-                    const colors = ColorConfig.getChannelColor(this._doc.song, this.index);
-                    box.setIndex(this._doc.song.channels[this.index].bars[i], selected, dim && !selected ? colors.secondaryChannel : colors.primaryChannel);
-                    box.container.style.visibility = "visible";
-                }
-                else {
-                    box.container.style.visibility = "hidden";
-                }
-            }
+render() {
+    for (let i = 0; i < this._boxes.length; i++) {
+        const selected = (i == this._doc.bar);
+        const dim = (this._doc.trackVisibleBars < this._doc.song.barCount);
+        const pattern = this._doc.song.getPattern(this.index, i);
+        const isEmpty = (pattern == null || pattern.notes.length === 0);
+        const box = this._boxes[i];
+        
+        if (i < this._doc.song.barCount) {
+            // THE FIX: Use bar index (i) for color instead of channel index (this.index)
+            const colors = ColorConfig.getChannelColor(this._doc.song, i); 
+            
+            box.setIndex(this._doc.song.channels[this.index].bars[i], selected, dim && !selected ? colors.secondaryChannel : colors.primaryChannel);
+            box.container.style.visibility = "visible";
+        } else {
+            box.container.style.visibility = "hidden";
         }
+    }
+}
     }
     ChannelRow.patternHeight = 28;
 
