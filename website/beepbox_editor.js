@@ -332,10 +332,6 @@ Config.rhythms = toNameMap(rhythmList);
             }
 
             if (didChange) {
-                activeDoc.notifier.changed();
-                if (window.beepboxEditor && typeof window.beepboxEditor.whenUpdated === "function") {
-                    window.beepboxEditor.whenUpdated();
-                }
                 updateTimeSignatureDisplay();
             }
 
