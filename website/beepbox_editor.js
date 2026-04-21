@@ -22961,8 +22961,6 @@ You should be redirected to the song at:<br /><br />
             this._whenResized = () => {
                 this._updateLayoutOption();
                 this.whenUpdated();
-				            // Make time signature control globally accessible
-				window.beepboxEditor = this;
             };
             this._refocusStage = () => {
                 this.mainLayer.focus({ preventScroll: true });
@@ -22973,6 +22971,7 @@ You should be redirected to the song at:<br /><br />
                 }
             };
             this.whenUpdated = () => {
+                window.beepboxEditor = this;
                 const prefs = this.doc.prefs;
                 this._muteEditor.container.style.display = prefs.enableChannelMuting ? "" : "none";
                 this.doc.trackVisibleBars = Math.floor((this._trackVisibleArea.clientWidth - (prefs.enableChannelMuting ? 32 : 0)) / this.doc.getBarWidth());
