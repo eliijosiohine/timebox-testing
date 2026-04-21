@@ -214,33 +214,38 @@ Config.rhythms = toNameMap(rhythmList);
         return container;
     }
     
-    function updateTimeSignatureDisplay() {
+  function updateTimeSignatureDisplay() {
     if (!timeSignatureDisplay) return;
-    const doc = window.beepboxEditor?.doc || window.currentSong?.doc; // fallback
+    const doc = window.beepboxEditor?.doc || window.doc || (window.beepbox && window.beepbox.doc);
     if (!doc || !doc.song) return;
     const song = doc.song;
-    
-    // Ensure rhythm index is valid
-    if (song.rhythm < 0 || song.rhythm >= Config.rhythms.length) {
-        console.warn("Invalid rhythm index:", song.rhythm, "defaulting to 4");
-        song.rhythm = 4;
-    }
     
     const numerator = song.beatsPerBar;
     const denominator = Config.rhythms[song.rhythm] ? Config.rhythms[song.rhythm].stepsPerBeat : 4;
     timeSignatureDisplay.textContent = numerator + "/" + denominator;
 }
-    
-  function showTimeSignatureDialog() {
-    // Look for the doc in multiple possible locations
-    const doc = window.beepboxEditor?.doc || (window.beepbox && window.beepbox.EditorConfig ? null : window.doc);
+ function showTimeSignatureDialog() {
+    // Search every possible location for the document
+    const doc = window.beepboxEditor?.doc || 
+                window.doc || 
+                (window.beepbox && window.beepbox.doc) ||
+                (typeof exports !== 'undefined' && exports.doc);
     
     if (!doc || !doc.song) {
-        console.error("BeepBox Document not found. The editor might still be loading.");
-        return;
+        // If it's still not found, try to find the editor instance and grab its doc
+        const possibleEditor = window.beepboxEditor || window.editor;
+        if (possibleEditor && possibleEditor.doc) {
+            var activeDoc = possibleEditor.doc;
+        } else {
+            console.error("BeepBox Document not found. Ensure the editor is fully loaded.");
+            alert("Editor still loading. Please wait a moment and try again.");
+            return;
+        }
     }
-    const song = doc.song;
+    const song = (doc ? doc.song : activeDoc.song);
+    const finalDoc = doc || activeDoc;
     
+    // Use 'finalDoc' for your .record() calls later in the applyBtn.onclick
     // Debug: log current state
     console.log("Dialog opened - song.rhythm:", song.rhythm, "song.beatsPerBar:", song.beatsPerBar);
         
@@ -387,19 +392,26 @@ applyBtn.onclick = () => {
 
 // Auto-insert time signature control
 function insertTimeSignatureControl() {
-    const menuArea = document.querySelector('.menu-area');
+    // The main container in BeepBox is usually 'beepboxEditorContainer' or '.beepbox-site'
+    const menuArea = document.querySelector('.menu-area') || document.querySelector('.editor-controls');
     if (!menuArea) return; 
 
-    // Use a unique ID to prevent adding the button 100 times
     if (document.getElementById("timeSignatureButtonContainer")) return;
 
     const control = createTimeSignatureControl();
-    control.id = "timeSignatureButtonContainer"; // Assign the ID here
+    control.id = "timeSignatureButtonContainer";
     
+    // Put it at the top of the menu area
     menuArea.insertBefore(control, menuArea.firstChild);
     updateTimeSignatureDisplay();
 }
 
+// Check every 1 second to see if the editor is ready or if the button was deleted by a UI refresh
+setInterval(() => {
+    insertTimeSignatureControl();
+    // Also keep the text updated in case the user changes rhythm via the standard dropdown
+    updateTimeSignatureDisplay();
+}, 1000);
 // Instead of just window.load, check periodically until the editor is actually there
 const initInterval = setInterval(() => {
     if (document.querySelector('.menu-area')) {
