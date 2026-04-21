@@ -108,60 +108,56 @@ Config.scales = toNameMap([
     Config.partsPerBeat = 25200;
     Config.ticksPerPart = 2;
 	
-  const rhythmList = [];
-const ppb = Config.partsPerBeat;
+   const rhythmList = [];
+    const ppb = Config.partsPerBeat;
 
-// 1. MANUALLY DEFINE THE DEFAULT (÷4) FIRST
-// This ensures Index 0 is always the "Standard" rhythm.
-rhythmList.push({
-    name: "÷4 (standard)",
-    stepsPerBeat: 4,
-    ticksPerArpeggio: 3,
-    arpeggioPatterns: [[0], [0, 0, 1, 1], [0, 1, 2, 1]],
-    roundUpThresholds: [
-        Math.floor(ppb/4 * 0.1), 
-        Math.floor(ppb/4 * 0.4), 
-        Math.floor(ppb/4 * 0.7), 
-        Math.floor(ppb/4 * 0.9)
-    ]
-});
+    // This loop checks every number from 1 up to the partsPerBeat.
+    // If the number divides evenly, it's a valid rhythm.
+    for (let i = 1; i <= ppb; i++) {
+        
+        // Mathematical check: is this a valid divisor?
+        if (ppb % i === 0) {
+            
+            let name = "÷" + i;
+            let ticksPerArpeggio = 3;
+            let roundUpThresholds = null;
+            let arpeggioPatterns = [[0], [0, 1], [0, 1, 2, 1]];
 
-// 2. RUN THE LOOP FOR THE REMAINING DIVISORS
-for (let i = 1; i <= ppb; i++) {
-    // SKIP 4 because we already added it at the top!
-    if (i === 4) continue;
+            // Apply special BeepBox labels and settings for common rhythms
+            if (i === 3) {
+                name = "÷3 (triplets)";
+                ticksPerArpeggio = 4;
+                arpeggioPatterns = [[0], [0, 0, 1, 1], [0, 1, 2, 1]];
+                roundUpThresholds = [Math.floor(ppb/3 * 0.2), Math.floor(ppb/3 * 0.5), Math.floor(ppb/3 * 0.8)];
+            } else if (i === 4) {
+                name = "÷4 (standard)";
+                ticksPerArpeggio = 3;
+                arpeggioPatterns = [[0], [0, 0, 1, 1], [0, 1, 2, 1]];
+                roundUpThresholds = [Math.floor(ppb/4 * 0.1), Math.floor(ppb/4 * 0.4), Math.floor(ppb/4 * 0.7), Math.floor(ppb/4 * 0.9)];
+            } else if (i === 6) {
+                ticksPerArpeggio = 4;
+            } else if (i === 12) {
+                ticksPerArpeggio = 4;
+            } else if (i === 24) {
+                name = "freehand (÷24)";
+            }
 
-    if (ppb % i === 0) {
-        let name = "÷" + i;
-        let ticksPerArpeggio = 3;
-        let roundUpThresholds = null;
-        let arpeggioPatterns = [[0], [0, 1], [0, 1, 2, 1]];
-
-        // Handle the other special labels
-        if (i === 3) {
-            name = "÷3 (triplets)";
-            ticksPerArpeggio = 4;
-            arpeggioPatterns = [[0], [0, 0, 1, 1], [0, 1, 2, 1]];
-            roundUpThresholds = [Math.floor(ppb/3 * 0.2), Math.floor(ppb/3 * 0.5), Math.floor(ppb/3 * 0.8)];
-        } else if (i === 6 || i === 12) {
-            ticksPerArpeggio = 4;
-        } else if (i === 24) {
-            name = "freehand (÷24)";
+            rhythmList.push({
+                name: name,
+                stepsPerBeat: i,
+                ticksPerArpeggio: ticksPerArpeggio,
+                arpeggioPatterns: arpeggioPatterns,
+                roundUpThresholds: roundUpThresholds
+            });
         }
-
-        rhythmList.push({
-            name: name,
-            stepsPerBeat: i,
-            ticksPerArpeggio: ticksPerArpeggio,
-            arpeggioPatterns: arpeggioPatterns,
-            roundUpThresholds: roundUpThresholds
-        });
+        
+        // Safety: If the list gets too long (e.g. over 100 items), 
+        // the dropdown menu becomes hard to use. 
+        // You can remove this 'if' if you want thousands of options.
+        if (i > 100 && i !== ppb) continue; 
     }
 
-    if (i > 100 && i !== ppb) continue; 
-}
-
-Config.rhythms = toNameMap(rhythmList);
+    Config.rhythms = toNameMap(rhythmList);
 
     // =========================================================
     // TIME SIGNATURE FEATURE
@@ -19032,25 +19028,41 @@ Config.chipWaves = toNameMap([
             this._boxes = [];
             this.container = HTML.div({ class: "channelRow" });
         }
-render() {
-    for (let i = 0; i < this._boxes.length; i++) {
-        const selected = (i == this._doc.bar);
-        const dim = (this._doc.trackVisibleBars < this._doc.song.barCount);
-        const pattern = this._doc.song.getPattern(this.index, i);
-        const isEmpty = (pattern == null || pattern.notes.length === 0);
-        const box = this._boxes[i];
-        
-        if (i < this._doc.song.barCount) {
-            // THE FIX: Use bar index (i) for color instead of channel index (this.index)
-            const colors = ColorConfig.getChannelColor(this._doc.song, i); 
-            
-            box.setIndex(this._doc.song.channels[this.index].bars[i], selected, dim && !selected ? colors.secondaryChannel : colors.primaryChannel);
-            box.container.style.visibility = "visible";
-        } else {
-            box.container.style.visibility = "hidden";
+        render() {
+            const barWidth = this._doc.getBarWidth();
+            if (this._boxes.length != this._doc.song.barCount) {
+                for (let x = this._boxes.length; x < this._doc.song.barCount; x++) {
+                    const box = new Box(this.index, ColorConfig.getChannelColor(this._doc.song, this.index).secondaryChannel);
+                    box.setWidth(barWidth);
+                    this.container.appendChild(box.container);
+                    this._boxes[x] = box;
+                }
+                for (let x = this._doc.song.barCount; x < this._boxes.length; x++) {
+                    this.container.removeChild(this._boxes[x].container);
+                }
+                this._boxes.length = this._doc.song.barCount;
+            }
+            if (this._renderedBarWidth != barWidth) {
+                this._renderedBarWidth = barWidth;
+                for (let x = 0; x < this._boxes.length; x++) {
+                    this._boxes[x].setWidth(barWidth);
+                }
+            }
+            for (let i = 0; i < this._boxes.length; i++) {
+                const pattern = this._doc.song.getPattern(this.index, i);
+                const selected = (i === this._doc.bar && this.index === this._doc.channel);
+                const dim = (pattern === null || pattern.notes.length === 0);
+                const box = this._boxes[i];
+                if (i < this._doc.song.barCount) {
+                    const colors = ColorConfig.getChannelColor(this._doc.song, this.index);
+                    box.setIndex(this._doc.song.channels[this.index].bars[i], selected, dim && !selected ? colors.secondaryChannel : colors.primaryChannel);
+                    box.container.style.visibility = "visible";
+                }
+                else {
+                    box.container.style.visibility = "hidden";
+                }
+            }
         }
-    }
-}
     }
     ChannelRow.patternHeight = 28;
 
