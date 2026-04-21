@@ -408,8 +408,6 @@ const initInterval = setInterval(() => {
         if (window.beepboxEditor) clearInterval(initInterval);
     }
 }, 500);
-    }
-});
     Config.instrumentTypeNames = ["chip", "FM", "noise", "spectrum", "drumset", "harmonics", "PWM", "Picked String", "supersaw"];
     Config.instrumentTypeHasSpecialInterval = [true, true, false, false, false, true, false, false, false];
     Config.chipBaseExpression = 0.03375;
