@@ -352,7 +352,8 @@ Config.rhythms = toNameMap(rhythmList);
     }
 
     // Insert the time signature button once the editor menu area is available.
-    // Uses MutationObserver so we don't need polling intervals running forever.
+    // The observer disconnects itself the moment the button is placed,
+    // so it never fires again during normal playback/rendering.
     let _tsSigDocHooked = false;
     function _hookTsDisplayToNotifier() {
         if (_tsSigDocHooked) return;
@@ -363,27 +364,32 @@ Config.rhythms = toNameMap(rhythmList);
         }
     }
 
+    let _tsSigObserver = null;
     function insertTimeSignatureControl() {
         const menuArea = document.querySelector(".menu-area") || document.querySelector(".editor-controls");
         if (!menuArea) return;
+        _hookTsDisplayToNotifier();
         if (document.getElementById("timeSignatureButtonContainer")) {
             updateTimeSignatureDisplay();
-            _hookTsDisplayToNotifier();
+            if (_tsSigObserver) { _tsSigObserver.disconnect(); _tsSigObserver = null; }
             return;
         }
         const control = createTimeSignatureControl();
         control.id = "timeSignatureButtonContainer";
         menuArea.insertBefore(control, menuArea.firstChild);
         updateTimeSignatureDisplay();
-        _hookTsDisplayToNotifier();
+        if (_tsSigObserver) { _tsSigObserver.disconnect(); _tsSigObserver = null; }
     }
 
-    // Try immediately (in case the DOM is already ready) then watch for changes.
+    // Try immediately (synchronously, before the page is fully painted).
     insertTimeSignatureControl();
-    const _tsSigObserver = new MutationObserver(() => {
-        insertTimeSignatureControl();
-    });
-    _tsSigObserver.observe(document.documentElement, { childList: true, subtree: true });
+    // If the menu area was not ready yet, watch for it at the top level only (no subtree).
+    if (!document.getElementById("timeSignatureButtonContainer")) {
+        _tsSigObserver = new MutationObserver(() => {
+            insertTimeSignatureControl();
+        });
+        _tsSigObserver.observe(document.body || document.documentElement, { childList: true, subtree: false });
+    }
     Config.instrumentTypeNames = ["chip", "FM", "noise", "spectrum", "drumset", "harmonics", "PWM", "Picked String", "supersaw"];
     Config.instrumentTypeHasSpecialInterval = [true, true, false, false, false, true, false, false, false];
     Config.chipBaseExpression = 0.03375;
