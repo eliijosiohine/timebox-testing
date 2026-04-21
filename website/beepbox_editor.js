@@ -282,7 +282,7 @@ Config.rhythms = toNameMap(rhythmList);
             const rhythm = Config.rhythms[i];
             const opt = document.createElement("option");
             opt.value = i;
-            opt.textContent = "÷" + rhythm.stepsPerBeat + " (" + rhythm.name + ")";
+            opt.textContent = rhythm.stepsPerBeat;
             opt.selected = (i === song.rhythm);
             rhythmSelect.appendChild(opt);
         }
