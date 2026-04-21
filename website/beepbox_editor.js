@@ -231,9 +231,14 @@ Config.rhythms = toNameMap(rhythmList);
     timeSignatureDisplay.textContent = numerator + "/" + denominator;
 }
     
-    function showTimeSignatureDialog() {
-    const doc = window.beepboxEditor?.doc;
-    if (!doc || !doc.song) return;
+  function showTimeSignatureDialog() {
+    // Look for the doc in multiple possible locations
+    const doc = window.beepboxEditor?.doc || (window.beepbox && window.beepbox.EditorConfig ? null : window.doc);
+    
+    if (!doc || !doc.song) {
+        console.error("BeepBox Document not found. The editor might still be loading.");
+        return;
+    }
     const song = doc.song;
     
     // Debug: log current state
@@ -383,30 +388,26 @@ applyBtn.onclick = () => {
 // Auto-insert time signature control
 function insertTimeSignatureControl() {
     const menuArea = document.querySelector('.menu-area');
-    if (!menuArea) return; // not ready yet
-    
-    // Prevent duplicates
-    if (document.getElementById("timeSignatureValue")) return;
+    if (!menuArea) return; 
+
+    // Use a unique ID to prevent adding the button 100 times
+    if (document.getElementById("timeSignatureButtonContainer")) return;
 
     const control = createTimeSignatureControl();
-    // Insert at the very beginning of the menu area
-    menuArea.insertBefore(control, menuArea.firstChild);
+    control.id = "timeSignatureButtonContainer"; // Assign the ID here
     
-    // Initial sync
+    menuArea.insertBefore(control, menuArea.firstChild);
     updateTimeSignatureDisplay();
 }
 
-// Run it when the editor is ready + on song changes
-window.addEventListener('load', () => {
-    // Initial attempt
-    setTimeout(insertTimeSignatureControl, 300);
-    
-    // Also watch for editor updates
-    if (window.beepboxEditor && window.beepboxEditor.doc) {
-        window.beepboxEditor.doc.notifier.watch(() => {
-            setTimeout(insertTimeSignatureControl, 50);
-            updateTimeSignatureDisplay();
-        });
+// Instead of just window.load, check periodically until the editor is actually there
+const initInterval = setInterval(() => {
+    if (document.querySelector('.menu-area')) {
+        insertTimeSignatureControl();
+        // If we found it and window.beepboxEditor exists, we can stop checking
+        if (window.beepboxEditor) clearInterval(initInterval);
+    }
+}, 500);
     }
 });
     Config.instrumentTypeNames = ["chip", "FM", "noise", "spectrum", "drumset", "harmonics", "PWM", "Picked String", "supersaw"];
