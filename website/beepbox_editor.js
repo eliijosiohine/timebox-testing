@@ -108,56 +108,60 @@ Config.scales = toNameMap([
     Config.partsPerBeat = 25200;
     Config.ticksPerPart = 2;
 	
-   const rhythmList = [];
-    const ppb = Config.partsPerBeat;
+  const rhythmList = [];
+const ppb = Config.partsPerBeat;
 
-    // This loop checks every number from 1 up to the partsPerBeat.
-    // If the number divides evenly, it's a valid rhythm.
-    for (let i = 1; i <= ppb; i++) {
-        
-        // Mathematical check: is this a valid divisor?
-        if (ppb % i === 0) {
-            
-            let name = "÷" + i;
-            let ticksPerArpeggio = 3;
-            let roundUpThresholds = null;
-            let arpeggioPatterns = [[0], [0, 1], [0, 1, 2, 1]];
+// 1. MANUALLY DEFINE THE DEFAULT (÷4) FIRST
+// This ensures Index 0 is always the "Standard" rhythm.
+rhythmList.push({
+    name: "÷4 (standard)",
+    stepsPerBeat: 4,
+    ticksPerArpeggio: 3,
+    arpeggioPatterns: [[0], [0, 0, 1, 1], [0, 1, 2, 1]],
+    roundUpThresholds: [
+        Math.floor(ppb/4 * 0.1), 
+        Math.floor(ppb/4 * 0.4), 
+        Math.floor(ppb/4 * 0.7), 
+        Math.floor(ppb/4 * 0.9)
+    ]
+});
 
-            // Apply special BeepBox labels and settings for common rhythms
-            if (i === 3) {
-                name = "÷3 (triplets)";
-                ticksPerArpeggio = 4;
-                arpeggioPatterns = [[0], [0, 0, 1, 1], [0, 1, 2, 1]];
-                roundUpThresholds = [Math.floor(ppb/3 * 0.2), Math.floor(ppb/3 * 0.5), Math.floor(ppb/3 * 0.8)];
-            } else if (i === 4) {
-                name = "÷4 (standard)";
-                ticksPerArpeggio = 3;
-                arpeggioPatterns = [[0], [0, 0, 1, 1], [0, 1, 2, 1]];
-                roundUpThresholds = [Math.floor(ppb/4 * 0.1), Math.floor(ppb/4 * 0.4), Math.floor(ppb/4 * 0.7), Math.floor(ppb/4 * 0.9)];
-            } else if (i === 6) {
-                ticksPerArpeggio = 4;
-            } else if (i === 12) {
-                ticksPerArpeggio = 4;
-            } else if (i === 24) {
-                name = "freehand (÷24)";
-            }
+// 2. RUN THE LOOP FOR THE REMAINING DIVISORS
+for (let i = 1; i <= ppb; i++) {
+    // SKIP 4 because we already added it at the top!
+    if (i === 4) continue;
 
-            rhythmList.push({
-                name: name,
-                stepsPerBeat: i,
-                ticksPerArpeggio: ticksPerArpeggio,
-                arpeggioPatterns: arpeggioPatterns,
-                roundUpThresholds: roundUpThresholds
-            });
+    if (ppb % i === 0) {
+        let name = "÷" + i;
+        let ticksPerArpeggio = 3;
+        let roundUpThresholds = null;
+        let arpeggioPatterns = [[0], [0, 1], [0, 1, 2, 1]];
+
+        // Handle the other special labels
+        if (i === 3) {
+            name = "÷3 (triplets)";
+            ticksPerArpeggio = 4;
+            arpeggioPatterns = [[0], [0, 0, 1, 1], [0, 1, 2, 1]];
+            roundUpThresholds = [Math.floor(ppb/3 * 0.2), Math.floor(ppb/3 * 0.5), Math.floor(ppb/3 * 0.8)];
+        } else if (i === 6 || i === 12) {
+            ticksPerArpeggio = 4;
+        } else if (i === 24) {
+            name = "freehand (÷24)";
         }
-        
-        // Safety: If the list gets too long (e.g. over 100 items), 
-        // the dropdown menu becomes hard to use. 
-        // You can remove this 'if' if you want thousands of options.
-        if (i > 100 && i !== ppb) continue; 
+
+        rhythmList.push({
+            name: name,
+            stepsPerBeat: i,
+            ticksPerArpeggio: ticksPerArpeggio,
+            arpeggioPatterns: arpeggioPatterns,
+            roundUpThresholds: roundUpThresholds
+        });
     }
 
-    Config.rhythms = toNameMap(rhythmList);
+    if (i > 100 && i !== ppb) continue; 
+}
+
+Config.rhythms = toNameMap(rhythmList);
 
     // =========================================================
     // TIME SIGNATURE FEATURE
