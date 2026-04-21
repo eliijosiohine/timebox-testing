@@ -22971,7 +22971,6 @@ You should be redirected to the song at:<br /><br />
                 }
             };
             this.whenUpdated = () => {
-                window.beepboxEditor = this;
                 const prefs = this.doc.prefs;
                 this._muteEditor.container.style.display = prefs.enableChannelMuting ? "" : "none";
                 this.doc.trackVisibleBars = Math.floor((this._trackVisibleArea.clientWidth - (prefs.enableChannelMuting ? 32 : 0)) / this.doc.getBarWidth());
@@ -24233,6 +24232,7 @@ this._tempoSlider.value = (100.0 * Math.log(this.doc.song.tempo / Config.tempoMi
                 this.doc.notifier.changed();
                 this.doc.prefs.save();
             };
+            window.beepboxEditor = this;
             this.doc.notifier.watch(this.whenUpdated);
             window.addEventListener("resize", this._whenResized);
             window.requestAnimationFrame(this.updatePlayButton);
