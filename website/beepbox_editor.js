@@ -1,4 +1,3 @@
-
 var beepbox = (function (exports) {
     'use strict';
 
@@ -111,33 +110,42 @@ Config.scales = toNameMap([
   const rhythmList = [];
 const ppb = Config.partsPerBeat;
 
-// 1. MANUALLY DEFINE THE DEFAULT (÷4) FIRST
-// This ensures Index 0 is always the "Standard" rhythm.
-rhythmList.push({
-    name: "÷4 (standard)",
-    stepsPerBeat: 4,
-    ticksPerArpeggio: 3,
-    arpeggioPatterns: [[0], [0, 0, 1, 1], [0, 1, 2, 1]],
-    roundUpThresholds: [
-        Math.floor(ppb/4 * 0.1), 
-        Math.floor(ppb/4 * 0.4), 
-        Math.floor(ppb/4 * 0.7), 
-        Math.floor(ppb/4 * 0.9)
-    ]
-});
+// Build divisor list efficiently: only iterate up to sqrt(ppb)
+// then collect both divisors of each pair. This avoids the
+// original 25,200-iteration loop.
+{
+    const divisors = [];
+    for (let i = 1; i * i <= ppb; i++) {
+        if (ppb % i === 0) {
+            divisors.push(i);
+            if (i !== ppb / i) divisors.push(ppb / i);
+        }
+    }
+    divisors.sort((a, b) => a - b);
 
-// 2. RUN THE LOOP FOR THE REMAINING DIVISORS
-for (let i = 1; i <= ppb; i++) {
-    // SKIP 4 because we already added it at the top!
-    if (i === 4) continue;
+    // ÷4 (standard) must be first (index 0)
+    rhythmList.push({
+        name: "÷4 (standard)",
+        stepsPerBeat: 4,
+        ticksPerArpeggio: 3,
+        arpeggioPatterns: [[0], [0, 0, 1, 1], [0, 1, 2, 1]],
+        roundUpThresholds: [
+            Math.floor(ppb/4 * 0.1),
+            Math.floor(ppb/4 * 0.4),
+            Math.floor(ppb/4 * 0.7),
+            Math.floor(ppb/4 * 0.9)
+        ]
+    });
 
-    if (ppb % i === 0) {
+    for (let di = 0; di < divisors.length; di++) {
+        const i = divisors[di];
+        if (i === 4) continue; // already added above
+
         let name = "÷" + i;
         let ticksPerArpeggio = 3;
         let roundUpThresholds = null;
         let arpeggioPatterns = [[0], [0, 1], [0, 1, 2, 1]];
 
-        // Handle the other special labels
         if (i === 3) {
             name = "÷3 (triplets)";
             ticksPerArpeggio = 4;
@@ -157,8 +165,6 @@ for (let i = 1; i <= ppb; i++) {
             roundUpThresholds: roundUpThresholds
         });
     }
-
-    if (i > 100 && i !== ppb) continue; 
 }
 
 Config.rhythms = toNameMap(rhythmList);
@@ -166,107 +172,90 @@ Config.rhythms = toNameMap(rhythmList);
     // TIME SIGNATURE FEATURE
     // Display and control time signature: numerator (beats per bar) / denominator (rhythm)
     // =========================================================
-    
+
     let timeSignatureContainer = null;
     let timeSignatureDisplay = null;
-    
+
+    function _getBeepboxDoc() {
+        return (window.beepboxEditor && window.beepboxEditor.doc)
+            || window.doc
+            || (window.beepbox && window.beepbox.doc)
+            || null;
+    }
+
     function createTimeSignatureControl() {
         const container = document.createElement("div");
         container.className = "time-signature-control";
-        container.style.cssText = `
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 4px 8px;
-            margin: 2px 4px;
-            border: 1px solid #999;
-            border-radius: 4px;
-            background-color: #333;
-            cursor: pointer;
-            user-select: none;
-        `;
-        
+        container.style.cssText = [
+            "display:inline-flex",
+            "align-items:center",
+            "gap:8px",
+            "padding:4px 8px",
+            "margin:2px 4px",
+            "border:1px solid #999",
+            "border-radius:4px",
+            "background-color:#333",
+            "cursor:pointer",
+            "user-select:none"
+        ].join(";");
+
         const label = document.createElement("span");
-        label.textContent = "Time Signature (BETA): ";
-        label.style.fontSize = "11px";
-        label.style.color = "#ccc";
-        
+        label.textContent = "Time Sig: ";
+        label.style.cssText = "font-size:11px;color:#ccc;";
+
         const display = document.createElement("span");
         display.id = "timeSignatureValue";
-        display.style.cssText = `
-            font-family: monospace;
-            font-size: 16px;
-            font-weight: bold;
-            color: #fff;
-            min-width: 40px;
-            text-align: center;
-        `;
+        display.style.cssText = "font-family:monospace;font-size:16px;font-weight:bold;color:#fff;min-width:40px;text-align:center;";
         display.textContent = "8/4";
-        
+
         container.appendChild(label);
         container.appendChild(display);
         container.title = "Click to change time signature";
         container.onclick = showTimeSignatureDialog;
-        
+
         timeSignatureContainer = container;
         timeSignatureDisplay = display;
-        
+
         return container;
     }
-    
-  function updateTimeSignatureDisplay() {
-    if (!timeSignatureDisplay) return;
-    const doc = window.beepboxEditor?.doc || window.doc || (window.beepbox && window.beepbox.doc);
-    if (!doc || !doc.song) return;
-    const song = doc.song;
-    
-    const numerator = song.beatsPerBar;
-    const denominator = Config.rhythms[song.rhythm] ? Config.rhythms[song.rhythm].stepsPerBeat : 4;
-    timeSignatureDisplay.textContent = numerator + "/" + denominator;
-}
- function showTimeSignatureDialog() {
-    // Search every possible location for the document
-    const doc = window.beepboxEditor?.doc || 
-                window.doc || 
-                (window.beepbox && window.beepbox.doc) ||
-                (typeof exports !== 'undefined' && exports.doc);
-    
-    if (!doc || !doc.song) {
-        // If it's still not found, try to find the editor instance and grab its doc
-        const possibleEditor = window.beepboxEditor || window.editor;
-        if (possibleEditor && possibleEditor.doc) {
-            var activeDoc = possibleEditor.doc;
-        } else {
-            console.error("BeepBox Document not found. Ensure the editor is fully loaded.");
+
+    function updateTimeSignatureDisplay() {
+        if (!timeSignatureDisplay) return;
+        const doc = _getBeepboxDoc();
+        if (!doc || !doc.song) return;
+        const song = doc.song;
+        const numerator = song.beatsPerBar;
+        const denominator = Config.rhythms[song.rhythm] ? Config.rhythms[song.rhythm].stepsPerBeat : 4;
+        timeSignatureDisplay.textContent = numerator + "/" + denominator;
+    }
+
+    function showTimeSignatureDialog() {
+        // Resolve the doc reference once, at dialog-open time.
+        const activeDoc = _getBeepboxDoc();
+        if (!activeDoc || !activeDoc.song) {
             alert("Editor still loading. Please wait a moment and try again.");
             return;
         }
-    }
-    const song = (doc ? doc.song : activeDoc.song);
-    const finalDoc = doc || activeDoc;
-    
-    // Use 'finalDoc' for your .record() calls later in the applyBtn.onclick
-    // Debug: log current state
-    console.log("Dialog opened - song.rhythm:", song.rhythm, "song.beatsPerBar:", song.beatsPerBar);
-        
+        const song = activeDoc.song;
+
         const overlay = document.createElement("div");
-        overlay.style.cssText = `position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:10000;`;
-        
+        overlay.style.cssText = "position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:10000;";
+
         const dialog = document.createElement("div");
-        dialog.style.cssText = `background:#444;border:2px solid #666;border-radius:8px;padding:20px;max-width:400px;color:#ccc;font-family:Arial,sans-serif;`;
-        
+        dialog.style.cssText = "background:#444;border:2px solid #666;border-radius:8px;padding:20px;max-width:400px;width:90%;color:#ccc;font-family:Arial,sans-serif;";
+
         const title = document.createElement("h3");
         title.textContent = "Time Signature";
         title.style.cssText = "margin-top:0;color:#fff;";
         dialog.appendChild(title);
-        
+
         const beatLabel = document.createElement("label");
         beatLabel.textContent = "Numerator (Beats per Bar):";
         beatLabel.style.cssText = "display:block;margin-top:12px;margin-bottom:4px;color:#fff;";
         dialog.appendChild(beatLabel);
-        
+
         const beatSelect = document.createElement("select");
-        beatSelect.style.cssText = "width:100%;padding:6px;margin-bottom:15px;background:#555;color:#fff;border:1px solid #666;";
+        beatSelect.style.cssText = "width:100%;padding:6px;margin-bottom:15px;background:#555;color:#fff;border:1px solid #666;border-radius:3px;";
         for (let i = Config.beatsPerBarMin; i <= Math.min(Config.beatsPerBarMax, 24); i++) {
             const opt = document.createElement("option");
             opt.value = i;
@@ -275,151 +264,114 @@ Config.rhythms = toNameMap(rhythmList);
             beatSelect.appendChild(opt);
         }
         dialog.appendChild(beatSelect);
-        
+
         const rhythmLabel = document.createElement("label");
         rhythmLabel.textContent = "Denominator (Rhythm):";
         rhythmLabel.style.cssText = "display:block;margin-top:12px;margin-bottom:4px;color:#fff;";
         dialog.appendChild(rhythmLabel);
-        
+
         const rhythmSelect = document.createElement("select");
-        rhythmSelect.style.cssText = "width:100%;padding:6px;margin-bottom:15px;background:#555;color:#fff;border:1px solid #666;";
+        rhythmSelect.style.cssText = "width:100%;padding:6px;margin-bottom:15px;background:#555;color:#fff;border:1px solid #666;border-radius:3px;";
         for (let i = 0; i < Math.min(Config.rhythms.length, 30); i++) {
             const rhythm = Config.rhythms[i];
             const opt = document.createElement("option");
             opt.value = i;
-            opt.textContent = rhythm.stepsPerBeat;
+            opt.textContent = rhythm.stepsPerBeat + (rhythm.name ? "  (" + rhythm.name + ")" : "");
             opt.selected = (i === song.rhythm);
             rhythmSelect.appendChild(opt);
         }
-// ... (existing rhythmSelect code above) ...
         dialog.appendChild(rhythmSelect);
-        
-        // --- NEW STRATEGY SELECTION ---
+
         const strategyLabel = document.createElement("label");
         strategyLabel.textContent = "Conversion Strategy:";
         strategyLabel.style.cssText = "display:block;margin-top:12px;margin-bottom:4px;color:#fff;";
         dialog.appendChild(strategyLabel);
-        
-        const strategySelect = document.createElement("select");
-        strategySelect.style.cssText = "width:100%;padding:6px;margin-bottom:15px;background:#555;color:#fff;border:1px solid #666;";
-        
-        const strategies = [
-            { value: "stretch", grow: "Stretch (Adjust tempo & notes)" },
-            { value: "splice", grow: "Splice (Cut off extra notes)" },
-            { value: "overflow", grow: "Overflow (Move notes to next bar)" }
-        ];
 
-        strategies.forEach(s => {
+        const strategySelect = document.createElement("select");
+        strategySelect.style.cssText = "width:100%;padding:6px;margin-bottom:15px;background:#555;color:#fff;border:1px solid #666;border-radius:3px;";
+        [
+            { value: "stretch",  label: "Stretch (Adjust tempo & notes)" },
+            { value: "splice",   label: "Splice (Cut off extra notes)" },
+            { value: "overflow", label: "Overflow (Move notes to next bar)" }
+        ].forEach(s => {
             const opt = document.createElement("option");
             opt.value = s.value;
-            opt.textContent = s.grow;
-            // Default to stretch to avoid the error you were seeing
-            if (s.value === "stretch") opt.selected = true;
+            opt.textContent = s.label;
+            opt.selected = (s.value === "stretch");
             strategySelect.appendChild(opt);
         });
         dialog.appendChild(strategySelect);
-        // ------------------------------
 
         const btnContainer = document.createElement("div");
         btnContainer.style.cssText = "display:flex;gap:10px;justify-content:flex-end;margin-top:20px;";
-        
+
         const cancelBtn = document.createElement("button");
         cancelBtn.textContent = "Cancel";
         cancelBtn.style.cssText = "padding:8px 16px;background:#555;color:#ccc;border:1px solid #666;border-radius:4px;cursor:pointer;";
         cancelBtn.onclick = () => overlay.remove();
-        
+
         const applyBtn = document.createElement("button");
         applyBtn.textContent = "Apply";
         applyBtn.style.cssText = "padding:8px 16px;background:#0a0;color:#fff;border:1px solid #080;border-radius:4px;cursor:pointer;font-weight:bold;";
-        
-applyBtn.onclick = () => {
-    const newBeats = parseInt(beatSelect.value);
-    const newRhythm = parseInt(rhythmSelect.value);
-    const strategy = strategySelect.value; 
-    
-    let didChange = false;
 
-    if (newBeats !== song.beatsPerBar || newRhythm !== song.rhythm) {
-        // 1. Record the Rhythm change
-        if (newRhythm !== song.rhythm) {
-            doc.record(new ChangeRhythm(doc, newRhythm));
-            didChange = true;
-        }
-        
-        // 2. Record the Beats Per Bar (Numerator) change
-        if (newBeats !== song.beatsPerBar) {
-            doc.record(new ChangeBeatsPerBar(doc, newBeats, strategy));
-            didChange = true;
-        }
-    }
+        applyBtn.onclick = () => {
+            const newBeats = parseInt(beatSelect.value);
+            const newRhythm = parseInt(rhythmSelect.value);
+            const strategy = strategySelect.value;
 
-    if (didChange) {
-        // 3. Notify the document (this updates the URL hash for the refresh)
-        doc.notifier.changed(); 
-        
-        // 4. Force the standard editor UI to sync its internal rhythm dropdown
-        if (window.beepboxEditor) {
-            // .whenUpdated() is the internal method that syncs all 
-            // standard dropdowns (like Rhythm) to the current song state.
-            if (typeof window.beepboxEditor.whenUpdated === "function") {
-                window.beepboxEditor.whenUpdated();
+            let didChange = false;
+
+            if (newRhythm !== song.rhythm) {
+                activeDoc.record(new ChangeRhythm(activeDoc, newRhythm));
+                didChange = true;
             }
-        }
+            if (newBeats !== song.beatsPerBar) {
+                activeDoc.record(new ChangeBeatsPerBar(activeDoc, newBeats, strategy));
+                didChange = true;
+            }
 
-        // 5. Update your custom display label
-        updateTimeSignatureDisplay();
+            if (didChange) {
+                activeDoc.notifier.changed();
+                if (window.beepboxEditor && typeof window.beepboxEditor.whenUpdated === "function") {
+                    window.beepboxEditor.whenUpdated();
+                }
+                updateTimeSignatureDisplay();
+            }
 
-        // 6. Refresh the page as requested to ensure a clean state
-        location.reload();
-    }
-    
-    overlay.remove();
-}
-        
+            overlay.remove();
+        };
+
         btnContainer.appendChild(cancelBtn);
         btnContainer.appendChild(applyBtn);
         dialog.appendChild(btnContainer);
-        
+
         overlay.appendChild(dialog);
-        overlay.onclick = (e) => {
-            if (e.target === overlay) overlay.remove();
-        };
-        
+        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
         document.body.appendChild(overlay);
     }
-    
- // Replace the old setTimeout block (around line ~ the one with 1200ms) with this:
 
-// Auto-insert time signature control
-function insertTimeSignatureControl() {
-    // The main container in BeepBox is usually 'beepboxEditorContainer' or '.beepbox-site'
-    const menuArea = document.querySelector('.menu-area') || document.querySelector('.editor-controls');
-    if (!menuArea) return; 
-
-    if (document.getElementById("timeSignatureButtonContainer")) return;
-
-    const control = createTimeSignatureControl();
-    control.id = "timeSignatureButtonContainer";
-    
-    // Put it at the top of the menu area
-    menuArea.insertBefore(control, menuArea.firstChild);
-    updateTimeSignatureDisplay();
-}
-
-// Check every 1 second to see if the editor is ready or if the button was deleted by a UI refresh
-setInterval(() => {
-    insertTimeSignatureControl();
-    // Also keep the text updated in case the user changes rhythm via the standard dropdown
-    updateTimeSignatureDisplay();
-}, 1000);
-// Instead of just window.load, check periodically until the editor is actually there
-const initInterval = setInterval(() => {
-    if (document.querySelector('.menu-area')) {
-        insertTimeSignatureControl();
-        // If we found it and window.beepboxEditor exists, we can stop checking
-        if (window.beepboxEditor) clearInterval(initInterval);
+    // Insert the time signature button once the editor menu area is available.
+    // Uses MutationObserver so we don't need polling intervals running forever.
+    function insertTimeSignatureControl() {
+        const menuArea = document.querySelector(".menu-area") || document.querySelector(".editor-controls");
+        if (!menuArea) return;
+        if (document.getElementById("timeSignatureButtonContainer")) {
+            // Button already present — just refresh the display text.
+            updateTimeSignatureDisplay();
+            return;
+        }
+        const control = createTimeSignatureControl();
+        control.id = "timeSignatureButtonContainer";
+        menuArea.insertBefore(control, menuArea.firstChild);
+        updateTimeSignatureDisplay();
     }
-}, 500);
+
+    // Try immediately (in case the DOM is already ready) then watch for changes.
+    insertTimeSignatureControl();
+    const _tsSigObserver = new MutationObserver(() => {
+        insertTimeSignatureControl();
+    });
+    _tsSigObserver.observe(document.documentElement, { childList: true, subtree: true });
     Config.instrumentTypeNames = ["chip", "FM", "noise", "spectrum", "drumset", "harmonics", "PWM", "Picked String", "supersaw"];
     Config.instrumentTypeHasSpecialInterval = [true, true, false, false, false, true, false, false, false];
     Config.chipBaseExpression = 0.03375;
