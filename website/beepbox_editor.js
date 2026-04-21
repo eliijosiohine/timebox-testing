@@ -180,7 +180,6 @@ Config.rhythms = toNameMap(rhythmList);
         return (window.beepboxEditor && window.beepboxEditor.doc)
             || window.doc
             || (window.beepbox && window.beepbox.doc)
-            || (typeof beepbox !== 'undefined' && beepbox && beepbox.doc)
             || null;
     }
 
@@ -201,7 +200,7 @@ Config.rhythms = toNameMap(rhythmList);
         ].join(";");
 
         const label = document.createElement("span");
-        label.textContent = "Time Signature (Beta): ";
+        label.textContent = "Time Sig: ";
         label.style.cssText = "font-size:11px;color:#ccc;";
 
         const display = document.createElement("span");
@@ -353,29 +352,18 @@ Config.rhythms = toNameMap(rhythmList);
 
     // Insert the time signature button once the editor menu area is available.
     // Uses MutationObserver so we don't need polling intervals running forever.
-    let _tsSigDocHooked = false;
-    function _hookTsDisplayToNotifier() {
-        if (_tsSigDocHooked) return;
-        const doc = _getBeepboxDoc();
-        if (doc && doc.notifier) {
-            doc.notifier.watch(updateTimeSignatureDisplay);
-            _tsSigDocHooked = true;
-        }
-    }
-
     function insertTimeSignatureControl() {
         const menuArea = document.querySelector(".menu-area") || document.querySelector(".editor-controls");
         if (!menuArea) return;
         if (document.getElementById("timeSignatureButtonContainer")) {
+            // Button already present — just refresh the display text.
             updateTimeSignatureDisplay();
-            _hookTsDisplayToNotifier();
             return;
         }
         const control = createTimeSignatureControl();
         control.id = "timeSignatureButtonContainer";
         menuArea.insertBefore(control, menuArea.firstChild);
         updateTimeSignatureDisplay();
-        _hookTsDisplayToNotifier();
     }
 
     // Try immediately (in case the DOM is already ready) then watch for changes.
@@ -5356,7 +5344,7 @@ Config.chipWaves = toNameMap([
             this.beatsPerBar = 8;
             this.barCount = 16;
             this.patternsPerChannel = 8;
-            this.rhythm = 0;
+            this.rhythm = 3;
             this.layeredInstruments = false;
             this.patternInstruments = false;
             if (andResetChannels) {
@@ -6909,7 +6897,7 @@ Config.chipWaves = toNameMap([
                 importedPartsPerBeat = (jsonObject["ticksPerBeat"] | 0) || 4;
                 this.rhythm = Config.rhythms.findIndex(rhythm => rhythm.stepsPerBeat === importedPartsPerBeat);
                 if (this.rhythm === -1) {
-                    this.rhythm = 0;
+                    this.rhythm = 3;
                 }
             }
             let maxInstruments = 1;
@@ -22973,6 +22961,8 @@ You should be redirected to the song at:<br /><br />
             this._whenResized = () => {
                 this._updateLayoutOption();
                 this.whenUpdated();
+				            // Make time signature control globally accessible
+				window.beepboxEditor = this;
             };
             this._refocusStage = () => {
                 this.mainLayer.focus({ preventScroll: true });
@@ -24246,7 +24236,6 @@ this._tempoSlider.value = (100.0 * Math.log(this.doc.song.tempo / Config.tempoMi
             };
             this.doc.notifier.watch(this.whenUpdated);
             window.addEventListener("resize", this._whenResized);
-            window.beepboxEditor = this;
             window.requestAnimationFrame(this.updatePlayButton);
             if (!("share" in navigator)) {
                 this._fileMenu.removeChild(this._fileMenu.querySelector("[value='shareUrl']"));
