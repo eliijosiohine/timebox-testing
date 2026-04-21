@@ -365,6 +365,7 @@ Config.rhythms = toNameMap(rhythmList);
         if (document.getElementById("timeSignatureButtonContainer")) {
             updateTimeSignatureDisplay();
             _hookTsDisplayToNotifier();
+            _tsSigObserver.disconnect();
             return;
         }
         const control = createTimeSignatureControl();
@@ -372,14 +373,15 @@ Config.rhythms = toNameMap(rhythmList);
         menuArea.insertBefore(control, menuArea.firstChild);
         updateTimeSignatureDisplay();
         _hookTsDisplayToNotifier();
+        _tsSigObserver.disconnect();
     }
 
     // Try immediately (in case the DOM is already ready) then watch for changes.
-    insertTimeSignatureControl();
     const _tsSigObserver = new MutationObserver(() => {
         insertTimeSignatureControl();
     });
     _tsSigObserver.observe(document.documentElement, { childList: true, subtree: true });
+    insertTimeSignatureControl();
     Config.instrumentTypeNames = ["chip", "FM", "noise", "spectrum", "drumset", "harmonics", "PWM", "Picked String", "supersaw"];
     Config.instrumentTypeHasSpecialInterval = [true, true, false, false, false, true, false, false, false];
     Config.chipBaseExpression = 0.03375;
