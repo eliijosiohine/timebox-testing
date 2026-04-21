@@ -177,10 +177,13 @@ Config.rhythms = toNameMap(rhythmList);
     let timeSignatureDisplay = null;
 
     function _getBeepboxDoc() {
-        return (window.beepboxEditor && window.beepboxEditor.doc)
-            || window.doc
-            || (window.beepbox && window.beepbox.doc)
-            || null;
+        if (window.beepboxEditor && window.beepboxEditor.doc) return window.beepboxEditor.doc;
+        if (window.doc) return window.doc;
+        if (window.beepbox && window.beepbox.doc) return window.beepbox.doc;
+        const container = document.getElementById("beepboxEditorContainer");
+        if (container && container._beepboxEditorInstance && container._beepboxEditorInstance.doc)
+            return container._beepboxEditorInstance.doc;
+        return null;
     }
 
     function createTimeSignatureControl() {
@@ -24233,6 +24236,8 @@ this._tempoSlider.value = (100.0 * Math.log(this.doc.song.tempo / Config.tempoMi
                 this.doc.prefs.save();
             };
             window.beepboxEditor = this;
+            const _tsSigContainer = document.getElementById("beepboxEditorContainer") || beepboxEditorContainer;
+            if (_tsSigContainer) _tsSigContainer._beepboxEditorInstance = this;
             this.doc.notifier.watch(this.whenUpdated);
             window.addEventListener("resize", this._whenResized);
             window.requestAnimationFrame(this.updatePlayButton);
