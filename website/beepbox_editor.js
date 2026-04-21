@@ -18054,6 +18054,7 @@ Config.chipWaves = toNameMap([
                 this._renderedRhythm = this._doc.song.rhythm;
                 this._renderedPitchChannelCount = this._doc.song.pitchChannelCount;
                 this._renderedNoiseChannelCount = this._doc.song.noiseChannelCount;
+                this._renderedBeatWidth = -1;
                 this.resetCopiedPins();
             }
             this._copiedPins = this._copiedPinChannels[this._doc.channel];
@@ -22865,6 +22866,7 @@ You should be redirected to the song at:<br /><br />
                 setSelectedValue(this._scaleSelect, this.doc.song.scale);
                 this._scaleSelect.title = Config.scales[this.doc.song.scale].realName;
                 setSelectedValue(this._keySelect, Config.keys.length - 1 - this.doc.song.key);
+                setSelectedValue(this._rhythmSelect, this.doc.song.rhythm);
                 this._tempoStepper.value = this.doc.song.tempo.toString();
 // New dynamic formula:
 this._tempoSlider.value = (100.0 * Math.log(this.doc.song.tempo / Config.tempoMin) / Math.log(Config.tempoMax / Config.tempoMin)).toString();
@@ -24377,7 +24379,6 @@ this._tempoSlider.value = (100.0 * Math.log(this.doc.song.tempo / Config.tempoMi
                 if (newBeats !== song.beatsPerBar) {
                     this.doc.record(new ChangeBeatsPerBar(this.doc, newBeats, strategy));
                 }
-                this.doc.notifier.changed();
                 overlay.remove();
             };
             btnContainer.appendChild(cancelBtn);
