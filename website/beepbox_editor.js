@@ -180,11 +180,9 @@ Config.rhythms = toNameMap(rhythmList);
         if (window.beepboxEditor && window.beepboxEditor.doc) return window.beepboxEditor.doc;
         if (window.doc) return window.doc;
         if (window.beepbox && window.beepbox.doc) return window.beepbox.doc;
-        try {
-            const container = document.getElementById("beepboxEditorContainer");
-            if (container && container._beepboxEditorInstance && container._beepboxEditorInstance.doc)
-                return container._beepboxEditorInstance.doc;
-        } catch (e) {}
+        const container = document.getElementById("beepboxEditorContainer");
+        if (container && container._beepboxEditorInstance && container._beepboxEditorInstance.doc)
+            return container._beepboxEditorInstance.doc;
         return null;
     }
 
