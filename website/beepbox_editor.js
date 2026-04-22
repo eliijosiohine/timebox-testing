@@ -23094,6 +23094,7 @@ You should be redirected to the song at:<br /><br />
                 }
                 setSelectedValue(this._scaleSelect, this.doc.song.scale);
                 this._scaleSelect.title = Config.scales[this.doc.song.scale].realName;
+				setSelectedValue(this._rhythmSelect, this.doc.song.rhythm);
                 setSelectedValue(this._keySelect, Config.keys.length - 1 - this.doc.song.key);
                 this._tempoStepper.value = this.doc.song.tempo.toString();
 // New dynamic formula:
