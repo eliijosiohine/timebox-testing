@@ -210,22 +210,18 @@ Config.scales = toNameMap([
         
         return container;
     }
-    
-    function updateTimeSignatureDisplay() {
-    if (!timeSignatureDisplay) return;
-    const doc = window.beepboxEditor?.doc || window.currentSong?.doc; // fallback
+  function updateTimeSignatureDisplay() {
+    const display = timeSignatureDisplay || document.getElementById("timeSignatureValue");
+    if (!display) return;
+    const doc = window.beepboxEditor?.doc || window.currentSong?.doc;
     if (!doc || !doc.song) return;
     const song = doc.song;
-    
-    // Ensure rhythm index is valid
     if (song.rhythm < 0 || song.rhythm >= Config.rhythms.length) {
-        console.warn("Invalid rhythm index:", song.rhythm, "defaulting to 4");
         song.rhythm = 4;
     }
-    
     const numerator = song.beatsPerBar;
     const denominator = Config.rhythms[song.rhythm] ? Config.rhythms[song.rhythm].stepsPerBeat : 4;
-    timeSignatureDisplay.textContent = numerator + "/" + denominator;
+    display.textContent = numerator + "/" + denominator;
 }
     
     function showTimeSignatureDialog() {
@@ -393,19 +389,18 @@ function insertTimeSignatureControl() {
     updateTimeSignatureDisplay();
 }
 
-// Run it when the editor is ready + on song changes
-window.addEventListener('load', () => {
-    // Initial attempt
-    setTimeout(insertTimeSignatureControl, 300);
-    
-    // Also watch for editor updates
+function attachTimeSignatureWatcher() {
     if (window.beepboxEditor && window.beepboxEditor.doc) {
+        insertTimeSignatureControl();
         window.beepboxEditor.doc.notifier.watch(() => {
-            setTimeout(insertTimeSignatureControl, 50);
+            insertTimeSignatureControl();
             updateTimeSignatureDisplay();
         });
+    } else {
+        setTimeout(attachTimeSignatureWatcher, 100);
     }
-});
+}
+window.addEventListener('load', () => setTimeout(attachTimeSignatureWatcher, 100));
     Config.instrumentTypeNames = ["chip", "FM", "noise", "spectrum", "drumset", "harmonics", "PWM", "Picked String", "supersaw"];
     Config.instrumentTypeHasSpecialInterval = [true, true, false, false, false, true, false, false, false];
     Config.chipBaseExpression = 0.03375;
