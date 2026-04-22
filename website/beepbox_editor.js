@@ -210,7 +210,8 @@ Config.scales = toNameMap([
         
         return container;
     }
-  function updateTimeSignatureDisplay() {
+    
+    function updateTimeSignatureDisplay() {
     const display = timeSignatureDisplay || document.getElementById("timeSignatureValue");
     if (!display) return;
     const doc = window.beepboxEditor?.doc || window.currentSong?.doc;
@@ -389,21 +390,19 @@ function insertTimeSignatureControl() {
     updateTimeSignatureDisplay();
 }
 
+// Run it when the editor is ready + on song changes
 window.addEventListener('load', () => {
+    // Initial attempt
     setTimeout(insertTimeSignatureControl, 300);
     
-    if (window.beepboxEditor && window.beepboxEditor.doc) { // ← this is false at load time
+    // Also watch for editor updates
+    if (window.beepboxEditor && window.beepboxEditor.doc) {
         window.beepboxEditor.doc.notifier.watch(() => {
             setTimeout(insertTimeSignatureControl, 50);
             updateTimeSignatureDisplay();
         });
     }
 });
-    } else {
-        setTimeout(attachTimeSignatureWatcher, 100);
-    }
-}
-window.addEventListener('load', () => setTimeout(attachTimeSignatureWatcher, 100));
     Config.instrumentTypeNames = ["chip", "FM", "noise", "spectrum", "drumset", "harmonics", "PWM", "Picked String", "supersaw"];
     Config.instrumentTypeHasSpecialInterval = [true, true, false, false, false, true, false, false, false];
     Config.chipBaseExpression = 0.03375;
