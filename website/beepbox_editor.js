@@ -389,13 +389,16 @@ function insertTimeSignatureControl() {
     updateTimeSignatureDisplay();
 }
 
-function attachTimeSignatureWatcher() {
-    if (window.beepboxEditor && window.beepboxEditor.doc) {
-        insertTimeSignatureControl();
+window.addEventListener('load', () => {
+    setTimeout(insertTimeSignatureControl, 300);
+    
+    if (window.beepboxEditor && window.beepboxEditor.doc) { // ← this is false at load time
         window.beepboxEditor.doc.notifier.watch(() => {
-            insertTimeSignatureControl();
+            setTimeout(insertTimeSignatureControl, 50);
             updateTimeSignatureDisplay();
         });
+    }
+});
     } else {
         setTimeout(attachTimeSignatureWatcher, 100);
     }
