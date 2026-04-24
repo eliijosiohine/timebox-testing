@@ -21,21 +21,21 @@
 	<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" rel="stylesheet" media="none" onload="if (this.media != 'all') this.media='all';" /> <!-- this is a trick to load CSS asynchronously. -->
 	<style type="text/css">
 		html {
-			background: var(--page-margin, black);
-			overflow-x: hidden;
-			font-size: large;
-			font-family: 'Roboto', sans-serif;
-			line-height: 1.3;
-			color: var(--primary-text, white);
-		}
+    /* This sets the color for the WHOLE page */
+    background-color: #0a0818 !important; 
+    overflow-x: hidden;
+    font-size: large;
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.3;
+    color: var(--primary-text, white);
+}
 		body {
-			margin: auto;
-			overflow-x: hidden;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			align-content: center;
-		}
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: transparent;
+}
 		#beepboxEditorContainer {
 			min-height: 645px;
 			overflow: auto;
@@ -303,12 +303,13 @@ body {
         }
 
         function animate() {
-          const centerX = canvas.width;
-          const centerY = canvas.height;
-			
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const centerX = canvas.width;
+    const centerY = canvas.height;
 
-          stars.forEach((star, i) => {
+    // This clears the canvas so it's see-through
+    ctx.clearRect(0, 0, canvas.width, canvas.height); 
+
+    stars.forEach((star, i) => {
             star.angle += star.speed;
             const x = centerX + star.radius * Math.cos(star.angle);
             const y = centerY + star.radius * Math.sin(star.angle);
