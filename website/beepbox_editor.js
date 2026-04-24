@@ -106,9 +106,6 @@ Config.scales = toNameMap([
     Config.patternInstrumentCountMax = 10;
     Config.partsPerBeat = 2520;
     Config.ticksPerPart = 2;
-const rhythmList = [];
-    const ppb = Config.partsPerBeat;
-
   const rhythmList = [];
     const ppbBase = Config.partsPerBeat;
 
