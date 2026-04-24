@@ -113,7 +113,7 @@ Config.scales = toNameMap([
     // Add Custom option at the top of the list
     rhythmList.push({
         name: "Custom... (EXPERIMENTAL)",
-        stepsPerBeat: null, 
+        stepsPerBeat: -1, 
         ticksPerArpeggio: 3,
         arpeggioPatterns: [[0], [0, 1], [0, 1, 2, 1]],
         roundUpThresholds: null
