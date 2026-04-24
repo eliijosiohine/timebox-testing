@@ -124,11 +124,11 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: -1; /* Ensures it stays behind everything */
-    display: block;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
     pointer-events: none;
+    background: transparent; 
 }
 /* This prevents the flexbox from treating the canvas as a top-row item */
 body {
@@ -305,8 +305,7 @@ body {
         function animate() {
           const centerX = canvas.width;
           const centerY = canvas.height;
-
-          ctx.fillStyle = "#0a0818"; // Background color for the canvas
+			
           ctx.fillRect(0, 0, canvas.width, canvas.height);
 
           stars.forEach((star, i) => {
