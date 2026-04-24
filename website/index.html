@@ -119,28 +119,21 @@
 				align-items: center;
 			}
 		}
-		/* New Starfield CSS */
-        #starfield {
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: -2; /* Sits behind everything */
-            width: 100%;
-            height: 100%;
-            display: block;
-            pointer-events: none;
-        }
-
-        /* Ensure your existing content backgrounds are transparent 
-           so the stars show through */
-        html, body, #beepboxEditorContainer, #text-content {
-            background: transparent !important;
-        }
-
-        /* Set the base page color to black so the canvas matches the edges */
-        html {
-            background-color: black !important;
-        }
+/* Corrected Starfield CSS */
+#starfield {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1; /* Ensures it stays behind everything */
+    display: block;
+    pointer-events: none;
+}
+/* This prevents the flexbox from treating the canvas as a top-row item */
+body {
+    position: relative;
+}
 	</style>
 </head>
 
