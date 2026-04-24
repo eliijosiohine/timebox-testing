@@ -22992,8 +22992,6 @@ You should be redirected to the song at:<br /><br />
             this._whenResized = () => {
                 this._updateLayoutOption();
                 this.whenUpdated();
-				            // Make time signature control globally accessible
-				window.beepboxEditor = this;
             };
             this._refocusStage = () => {
                 this.mainLayer.focus({ preventScroll: true });
@@ -24267,6 +24265,9 @@ this._tempoSlider.value = (100.0 * Math.log(this.doc.song.tempo / Config.tempoMi
                 this.doc.prefs.save();
             };
             this.doc.notifier.watch(this.whenUpdated);
+            // Make the editor available immediately so the time signature display
+            // can read song state on first render, not just after the first resize.
+            window.beepboxEditor = this;
             window.addEventListener("resize", this._whenResized);
             window.requestAnimationFrame(this.updatePlayButton);
             if (!("share" in navigator)) {
