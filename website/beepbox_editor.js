@@ -333,14 +333,58 @@ Config.scales = toNameMap([
 
             // Handle the "Custom..." selection
             if (Config.rhythms[selectedRhythmIdx].stepsPerBeat === -1) {
-                const customVal = prompt("Enter custom parts per beat (e.g. 7, 11, 2520):", Config.partsPerBeat);
-                const parsed = parseInt(customVal);
-                if (!isNaN(parsed) && parsed > 0) {
-                    Config.partsPerBeat = parsed;
+                const customVal = prompt("Enter custom denominator (steps per beat):", "11");
+                const newDenom = parseInt(customVal);
+                if (!isNaN(newDenom) && newDenom > 0) {
+                    const oldPPB = Config.partsPerBeat;
+                    const newPPB = newDenom; 
                     
-                    // We must force the song to recognize the change by recording a rhythm change.
-                    // Since ppb changed, we reset to the first available divisor (usually 1).
-                    doc.record(new ChangeRhythm(doc, 1)); 
+                    // 1. Update global configuration
+                    Config.partsPerBeat = newPPB;
+
+                    // 2. Scale all existing notes to prevent file corruption
+                    for (const channel of doc.song.channels) {
+                        for (const pattern of channel.patterns) {
+                            for (const note of pattern.notes) {
+                                note.start = Math.round(note.start * newPPB / oldPPB);
+                                note.end = Math.round(note.end * newPPB / oldPPB);
+                                for (const pin of note.pins) {
+                                    pin.time = Math.round(pin.time * newPPB / oldPPB);
+                                }
+                            }
+                        }
+                    }
+
+                    // 3. Rebuild the rhythm list to include the new custom divisor
+                    const newRhythmList = [{
+                        name: "Custom...",
+                        stepsPerBeat: -1,
+                        ticksPerArpeggio: 3,
+                        arpeggioPatterns: [[0], [0, 1], [0, 1, 2, 1]],
+                        roundUpThresholds: null
+                    }];
+                    for (let i = 1; i <= newPPB; i++) {
+                        if (i > 100 && i !== newPPB && i !== 3 && i !== 4) continue;
+                        if (newPPB % i === 0 || i === 3 || i === 4) {
+                            let name = "÷" + i;
+                            let ticksPerArpeggio = 3;
+                            let arpeggioPatterns = [[0], [0, 0, 1, 1], [0, 1, 2, 1]];
+                            if (i === 3) { name = "÷3 (triplets)"; ticksPerArpeggio = 4; }
+                            else if (i === 4) { name = "÷4 (standard)"; ticksPerArpeggio = 3; }
+                            newRhythmList.push({ name: name, stepsPerBeat: i, ticksPerArpeggio, arpeggioPatterns, roundUpThresholds: null });
+                        }
+                    }
+                    Config.rhythms = toNameMap(newRhythmList);
+
+                    // 4. Find and apply the index that matches your custom denominator
+                    let matchingIdx = 0;
+                    for (let i = 0; i < Config.rhythms.length; i++) {
+                        if (Config.rhythms[i].stepsPerBeat === newDenom) {
+                            matchingIdx = i;
+                            break;
+                        }
+                    }
+                    doc.record(new ChangeRhythm(doc, matchingIdx));
                 } else {
                     return; // Cancel if invalid input
                 }
