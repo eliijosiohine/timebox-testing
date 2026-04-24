@@ -106,52 +106,50 @@ Config.scales = toNameMap([
     Config.patternInstrumentCountMax = 10;
     Config.partsPerBeat = 2520;
     Config.ticksPerPart = 2;
-  const rhythmList = [];
-    const ppbBase = Config.partsPerBeat;
+ const rhythmList = [];
+    const ppb = Config.partsPerBeat;
 
-    // Add Custom option at the top
+    // Add Custom option at the top of the list
     rhythmList.push({
         name: "Custom...",
-        stepsPerBeat: -1, // Special flag for custom input
+        stepsPerBeat: -1, 
         ticksPerArpeggio: 3,
         arpeggioPatterns: [[0], [0, 1], [0, 1, 2, 1]],
         roundUpThresholds: null
     });
 
-    for (let i = 1; i <= ppbBase; i++) {
-        // Ensure standard rhythms and divisors are checked
-        if (i > 100 && i !== ppbBase && i !== 3 && i !== 4) continue;
+    for (let i = 1; i <= ppb; i++) {
+        // Ensure standard rhythms (3 and 4) and the current ppb are always included
+        if (i > 100 && i !== ppb && i !== 3 && i !== 4) continue;
+        
+        if (ppb % i === 0 || i === 3 || i === 4) {
+            let name = "÷" + i;
+            let ticksPerArpeggio = 3;
+            let roundUpThresholds = null;
+            let arpeggioPatterns = [[0], [0, 1], [0, 1, 2, 1]];
 
-        let name = "÷" + i;
-        let ticksPerArpeggio = 3;
-        let roundUpThresholds = null;
-        let arpeggioPatterns = [[0], [0, 1], [0, 1, 2, 1]];
+            if (i === 3) {
+                name = "÷3 (triplets)";
+                ticksPerArpeggio = 4;
+                arpeggioPatterns = [[0], [0, 0, 1, 1], [0, 1, 2, 1]];
+                roundUpThresholds = [Math.floor(ppb/3 * 0.2), Math.floor(ppb/3 * 0.5), Math.floor(ppb/3 * 0.8)];
+            } else if (i === 4) {
+                name = "÷4 (standard)";
+                ticksPerArpeggio = 3;
+                arpeggioPatterns = [[0], [0, 0, 1, 1], [0, 1, 2, 1]];
+                roundUpThresholds = [Math.floor(ppb/4 * 0.1), Math.floor(ppb/4 * 0.4), Math.floor(ppb/4 * 0.7), Math.floor(ppb/4 * 0.9)];
+            } else if (i === 24) {
+                name = "freehand (÷24)";
+            }
 
-        if (i === 3) {
-            name = "÷3 (triplets)";
-            ticksPerArpeggio = 4;
-            arpeggioPatterns = [[0], [0, 0, 1, 1], [0, 1, 2, 1]];
-            roundUpThresholds = [Math.floor(ppbBase/3 * 0.2), Math.floor(ppbBase/3 * 0.5), Math.floor(ppbBase/3 * 0.8)];
-        } else if (i === 4) {
-            name = "÷4 (standard)";
-            ticksPerArpeggio = 3;
-            arpeggioPatterns = [[0], [0, 0, 1, 1], [0, 1, 2, 1]];
-            roundUpThresholds = [Math.floor(ppbBase/4 * 0.1), Math.floor(ppbBase/4 * 0.4), Math.floor(ppbBase/4 * 0.7), Math.floor(ppbBase/4 * 0.9)];
-        } else if (i === 6) {
-            ticksPerArpeggio = 4;
-        } else if (i === 12) {
-            ticksPerArpeggio = 4;
-        } else if (i === 24) {
-            name = "freehand (÷24)";
+            rhythmList.push({
+                name: name,
+                stepsPerBeat: i,
+                ticksPerArpeggio: ticksPerArpeggio,
+                arpeggioPatterns: arpeggioPatterns,
+                roundUpThresholds: roundUpThresholds
+            });
         }
-
-        rhythmList.push({
-            name: name,
-            stepsPerBeat: i,
-            ticksPerArpeggio: ticksPerArpeggio,
-            arpeggioPatterns: arpeggioPatterns,
-            roundUpThresholds: roundUpThresholds
-        });
     }
 
     Config.rhythms = toNameMap(rhythmList);
@@ -331,18 +329,17 @@ Config.scales = toNameMap([
             const newBeats = parseInt(beatSelect.value);
             let newRhythmIdx = parseInt(rhythmSelect.value);
             const strategy = strategySelect.value;
+            const doc = window.beepboxEditor.doc;
 
-            // Check if "Custom..." was selected
             if (Config.rhythms[newRhythmIdx].stepsPerBeat === -1) {
-                const customVal = prompt("Enter custom parts per beat (divisor of 2520 not required):", Config.partsPerBeat);
+                const customVal = prompt("Enter custom parts per beat (e.g. 7, 11, 2520):", Config.partsPerBeat);
                 const parsed = parseInt(customVal);
                 if (!isNaN(parsed) && parsed > 0) {
                     Config.partsPerBeat = parsed;
-                    // Note: We don't need to rebuild everything; simply recording 
-                    // a rhythm change forces the song to acknowledge the new base.
+                    // Trigger a refresh of the song rhythm to use the new ppb
                     doc.record(new ChangeRhythm(doc, 0)); 
                 } else {
-                    return; // Cancel if invalid
+                    return; 
                 }
             } else if (newRhythmIdx !== doc.song.rhythm) {
                 doc.record(new ChangeRhythm(doc, newRhythmIdx));
@@ -352,7 +349,6 @@ Config.scales = toNameMap([
                 doc.record(new ChangeBeatsPerBar(doc, newBeats, strategy));
             }
 
-            // Safety check for editor update
             if (window.beepboxEditor && typeof window.beepboxEditor.whenUpdated === "function") {
                 window.beepboxEditor.whenUpdated();
             }
