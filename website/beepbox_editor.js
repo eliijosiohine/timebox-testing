@@ -107,22 +107,29 @@ Config.scales = toNameMap([
     Config.partsPerBeat = 2520;
     Config.ticksPerPart = 2;
 	
-   const rhythmList = [];
+  const rhythmList = [];
     const ppb = Config.partsPerBeat;
 
-    // This loop checks every number from 1 up to the partsPerBeat.
-    // If the number divides evenly, it's a valid rhythm.
+    // Add Custom option at the top of the list
+    rhythmList.push({
+        name: "Custom...",
+        stepsPerBeat: -1, 
+        ticksPerArpeggio: 3,
+        arpeggioPatterns: [[0], [0, 1], [0, 1, 2, 1]],
+        roundUpThresholds: null
+    });
+
     for (let i = 1; i <= ppb; i++) {
+        // Ensure standard rhythms (3 and 4) and the current ppb are always included
+        if (i > 100 && i !== ppb && i !== 3 && i !== 4) continue;
         
-        // Mathematical check: is this a valid divisor?
-        if (ppb % i === 0) {
-            
+        // This is the correct placement for the loop logic
+        if (ppb % i === 0 || i === 3 || i === 4) {
             let name = "÷" + i;
             let ticksPerArpeggio = 3;
             let roundUpThresholds = null;
             let arpeggioPatterns = [[0], [0, 1], [0, 1, 2, 1]];
 
-            // Apply special BeepBox labels and settings for common rhythms
             if (i === 3) {
                 name = "÷3 (triplets)";
                 ticksPerArpeggio = 4;
@@ -133,12 +140,6 @@ Config.scales = toNameMap([
                 ticksPerArpeggio = 3;
                 arpeggioPatterns = [[0], [0, 0, 1, 1], [0, 1, 2, 1]];
                 roundUpThresholds = [Math.floor(ppb/4 * 0.1), Math.floor(ppb/4 * 0.4), Math.floor(ppb/4 * 0.7), Math.floor(ppb/4 * 0.9)];
-            } else if (i === 6) {
-                ticksPerArpeggio = 4;
-            } else if (i === 12) {
-                ticksPerArpeggio = 4;
-            } else if (i === 24) {
-                name = "freehand (÷24)";
             }
 
             rhythmList.push({
@@ -149,15 +150,9 @@ Config.scales = toNameMap([
                 roundUpThresholds: roundUpThresholds
             });
         }
-        
-        // Safety: If the list gets too long (e.g. over 100 items), 
-        // the dropdown menu becomes hard to use. 
-        // You can remove this 'if' if you want thousands of options.
-        if (i > 100 && i !== ppb) continue; 
     }
 
     Config.rhythms = toNameMap(rhythmList);
-
     // =========================================================
     // TIME SIGNATURE FEATURE
     // Display and control time signature: numerator (beats per bar) / denominator (rhythm)
@@ -273,7 +268,7 @@ Config.scales = toNameMap([
             const rhythm = Config.rhythms[i];
             const opt = document.createElement("option");
             opt.value = i;
-            opt.textContent = rhythm.name + "  [" + rhythm.stepsPerBeat + " steps/beat]";
+            opt.textContent = rhythm.name;
             opt.selected = (i === song.rhythm);
             rhythmSelect.appendChild(opt);
         }
@@ -330,33 +325,41 @@ Config.scales = toNameMap([
         applyBtn.textContent = "Apply";
         applyBtn.style.cssText = "padding:8px 16px;background:#0a0;color:#fff;border:1px solid #080;border-radius:4px;cursor:pointer;font-weight:bold;";
 
-        applyBtn.onclick = () => {
+     applyBtn.onclick = () => {
             const newBeats = parseInt(beatSelect.value);
-            const newRhythm = parseInt(rhythmSelect.value);
+            let selectedRhythmIdx = parseInt(rhythmSelect.value);
             const strategy = strategySelect.value;
+            const doc = window.beepboxEditor.doc;
 
-            // Apply rhythm change first so that ChangeBeatsPerBar operates with
-            // the correct new rhythm already committed to the song.
-            if (newRhythm !== doc.song.rhythm) {
-                doc.record(new ChangeRhythm(doc, newRhythm));
+            // Handle the "Custom..." selection
+            if (Config.rhythms[selectedRhythmIdx].stepsPerBeat === -1) {
+                const customVal = prompt("Enter custom parts per beat (e.g. 7, 11, 2520):", Config.partsPerBeat);
+                const parsed = parseInt(customVal);
+                if (!isNaN(parsed) && parsed > 0) {
+                    Config.partsPerBeat = parsed;
+                    
+                    // We must force the song to recognize the change by recording a rhythm change.
+                    // Since ppb changed, we reset to the first available divisor (usually 1).
+                    doc.record(new ChangeRhythm(doc, 1)); 
+                } else {
+                    return; // Cancel if invalid input
+                }
+            } else if (selectedRhythmIdx !== doc.song.rhythm) {
+                doc.record(new ChangeRhythm(doc, selectedRhythmIdx));
             }
+
             if (newBeats !== doc.song.beatsPerBar) {
                 doc.record(new ChangeBeatsPerBar(doc, newBeats, strategy));
             }
 
-            // Sync the main editor's UI controls (rhythm dropdown, beats stepper, etc.)
-            // to the now-updated song state. This is the canonical way to update BeepBox's
-            // own dropdowns without a page reload.
+            // Sync UI
             if (window.beepboxEditor && typeof window.beepboxEditor.whenUpdated === "function") {
                 window.beepboxEditor.whenUpdated();
             }
 
-            // Update our custom display immediately from the now-committed song state.
             updateTimeSignatureDisplay();
-
             overlay.remove();
         };
-
         btnContainer.appendChild(cancelBtn);
         btnContainer.appendChild(applyBtn);
         dialog.appendChild(btnContainer);
