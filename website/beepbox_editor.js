@@ -300,9 +300,14 @@ Config.scales = toNameMap([
         strategySelect.style.cssText = "width:100%;padding:6px;margin-bottom:15px;background:#555;color:#fff;border:1px solid #666;";
 
         const strategies = [
-            { value: "stretch",  label: "Stretch (adjust tempo & notes)" },
-            { value: "splice",   label: "Splice (cut off extra notes)" },
-            { value: "overflow", label: "Overflow (move notes to next bar)" }
+            { value: "stretch",   label: "Stretch — scale notes & tempo to fit" },
+            { value: "splice",    label: "Splice — cut notes that exceed new length" },
+            { value: "overflow",  label: "Overflow — push excess notes to next bar" },
+            { value: "deleteAll", label: "Delete All — clear every note in every pattern" },
+            { value: "keepFirst", label: "Keep First Beat — erase all but the first beat" },
+            { value: "keepLast",  label: "Keep Last Beat — erase all but the last beat" },
+            { value: "mirror",    label: "Mirror — reverse note order within each bar" },
+            { value: "compact",   label: "Compact — pack notes together, remove gaps" },
         ];
         strategies.forEach(s => {
             const opt = document.createElement("option");
@@ -14628,6 +14633,120 @@ Config.chipWaves = toNameMap([
                             this.append(new ChangeMoveAndOverflowNotes(doc, newValue, 0));
                             doc.song.loopStart = 0;
                             doc.song.loopLength = doc.song.barCount;
+                        }
+                        break;
+                    case "deleteAll":
+                        {
+                            // Wipe every note from every pattern in every channel.
+                            for (let ci = 0; ci < doc.song.getChannelCount(); ci++) {
+                                for (const pattern of doc.song.channels[ci].patterns) {
+                                    for (let ni = pattern.notes.length - 1; ni >= 0; ni--) {
+                                        this.append(new ChangeNoteAdded(doc, pattern, pattern.notes[ni], ni, true));
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    case "keepFirst":
+                        {
+                            // Keep only notes that start within the first beat; delete everything else.
+                            const keepEnd = Config.partsPerBeat;
+                            for (let ci = 0; ci < doc.song.getChannelCount(); ci++) {
+                                for (const pattern of doc.song.channels[ci].patterns) {
+                                    this.append(new ChangeNoteTruncate(doc, pattern, keepEnd, newValue * Config.partsPerBeat));
+                                }
+                            }
+                        }
+                        break;
+                    case "keepLast":
+                        {
+                            // Keep only notes that overlap the last beat; delete everything before it.
+                            const keepStart = (newValue - 1) * Config.partsPerBeat;
+                            for (let ci = 0; ci < doc.song.getChannelCount(); ci++) {
+                                for (const pattern of doc.song.channels[ci].patterns) {
+                                    this.append(new ChangeNoteTruncate(doc, pattern, 0, keepStart));
+                                }
+                            }
+                        }
+                        break;
+                    case "mirror":
+                        {
+                            // Reverse each note's position within the bar: start -> barEnd - end, end -> barEnd - start.
+                            const barParts = newValue * Config.partsPerBeat;
+                            for (let ci = 0; ci < doc.song.getChannelCount(); ci++) {
+                                for (const pattern of doc.song.channels[ci].patterns) {
+                                    for (const note of pattern.notes) {
+                                        const oldStart = note.start;
+                                        const oldEnd   = note.end;
+                                        note.start = barParts - Math.min(oldEnd, barParts);
+                                        note.end   = barParts - oldStart;
+                                        // Reverse pin order so the note plays correctly mirrored.
+                                        note.pins.reverse();
+                                        let elapsed = 0;
+                                        for (let pi = 0; pi < note.pins.length; pi++) {
+                                            note.pins[pi] = makeNotePin(
+                                                note.pins[pi].interval,
+                                                elapsed,
+                                                note.pins[pi].size
+                                            );
+                                            if (pi + 1 < note.pins.length) {
+                                                elapsed += note.pins[pi + 1].time - note.pins[pi].time;
+                                            }
+                                        }
+                                        // Re-space pins evenly across the new duration.
+                                        const newDuration = note.end - note.start;
+                                        const oldDuration = oldEnd - oldStart;
+                                        if (oldDuration > 0) {
+                                            let t = 0;
+                                            for (let pi = 0; pi < note.pins.length; pi++) {
+                                                note.pins[pi] = makeNotePin(
+                                                    note.pins[pi].interval,
+                                                    Math.round(t * newDuration / oldDuration),
+                                                    note.pins[pi].size
+                                                );
+                                                t += (pi + 1 < note.pins.length ? note.pins[pi + 1].time - note.pins[pi].time : 0);
+                                            }
+                                        }
+                                    }
+                                    // Re-sort after flipping positions.
+                                    pattern.notes.sort((a, b) => a.start - b.start);
+                                }
+                            }
+                            doc.notifier.changed();
+                        }
+                        break;
+                    case "compact":
+                        {
+                            // Shift notes left to eliminate gaps; notes that overflow are truncated.
+                            const barParts = newValue * Config.partsPerBeat;
+                            for (let ci = 0; ci < doc.song.getChannelCount(); ci++) {
+                                for (const pattern of doc.song.channels[ci].patterns) {
+                                    pattern.notes.sort((a, b) => a.start - b.start);
+                                    let cursor = 0;
+                                    const kept = [];
+                                    for (const note of pattern.notes) {
+                                        if (cursor >= barParts) break;
+                                        const duration = note.end - note.start;
+                                        const newStart = cursor;
+                                        const newEnd   = Math.min(barParts, cursor + duration);
+                                        note.start = newStart;
+                                        note.end   = newEnd;
+                                        // Trim pins to new duration.
+                                        const newDur = newEnd - newStart;
+                                        while (note.pins.length > 1 && note.pins[note.pins.length - 1].time > newDur) {
+                                            note.pins.pop();
+                                        }
+                                        if (note.pins[note.pins.length - 1].time < newDur) {
+                                            const last = note.pins[note.pins.length - 1];
+                                            note.pins.push(makeNotePin(last.interval, newDur, last.size));
+                                        }
+                                        kept.push(note);
+                                        cursor = newEnd;
+                                    }
+                                    pattern.notes = kept;
+                                }
+                            }
+                            doc.notifier.changed();
                         }
                         break;
                     default: throw new Error("Unrecognized beats-per-bar conversion strategy.");
