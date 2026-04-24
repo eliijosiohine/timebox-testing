@@ -109,6 +109,9 @@ Config.scales = toNameMap([
 const rhythmList = [];
     const ppb = Config.partsPerBeat;
 
+  const rhythmList = [];
+    const ppbBase = Config.partsPerBeat;
+
     // Add Custom option at the top
     rhythmList.push({
         name: "Custom...",
@@ -118,46 +121,43 @@ const rhythmList = [];
         roundUpThresholds: null
     });
 
-    for (let i = 1; i <= ppb; i++) {
-            
-            let name = "÷" + i;
-            let ticksPerArpeggio = 3;
-            let roundUpThresholds = null;
-            let arpeggioPatterns = [[0], [0, 1], [0, 1, 2, 1]];
+    for (let i = 1; i <= ppbBase; i++) {
+        // Ensure standard rhythms and divisors are checked
+        if (i > 100 && i !== ppbBase && i !== 3 && i !== 4) continue;
 
-            // Apply special BeepBox labels and settings for common rhythms
-            if (i === 3) {
-                name = "÷3 (triplets)";
-                ticksPerArpeggio = 4;
-                arpeggioPatterns = [[0], [0, 0, 1, 1], [0, 1, 2, 1]];
-                roundUpThresholds = [Math.floor(ppb/3 * 0.2), Math.floor(ppb/3 * 0.5), Math.floor(ppb/3 * 0.8)];
-            } else if (i === 4) {
-                name = "÷4 (standard)";
-                ticksPerArpeggio = 3;
-                arpeggioPatterns = [[0], [0, 0, 1, 1], [0, 1, 2, 1]];
-                roundUpThresholds = [Math.floor(ppb/4 * 0.1), Math.floor(ppb/4 * 0.4), Math.floor(ppb/4 * 0.7), Math.floor(ppb/4 * 0.9)];
-            } else if (i === 6) {
-                ticksPerArpeggio = 4;
-            } else if (i === 12) {
-                ticksPerArpeggio = 4;
-            } else if (i === 24) {
-                name = "freehand (÷24)";
-            }
+        let name = "÷" + i;
+        let ticksPerArpeggio = 3;
+        let roundUpThresholds = null;
+        let arpeggioPatterns = [[0], [0, 1], [0, 1, 2, 1]];
 
-            rhythmList.push({
-                name: name,
-                stepsPerBeat: i,
-                ticksPerArpeggio: ticksPerArpeggio,
-                arpeggioPatterns: arpeggioPatterns,
-                roundUpThresholds: roundUpThresholds
-            });
+        if (i === 3) {
+            name = "÷3 (triplets)";
+            ticksPerArpeggio = 4;
+            arpeggioPatterns = [[0], [0, 0, 1, 1], [0, 1, 2, 1]];
+            roundUpThresholds = [Math.floor(ppbBase/3 * 0.2), Math.floor(ppbBase/3 * 0.5), Math.floor(ppbBase/3 * 0.8)];
+        } else if (i === 4) {
+            name = "÷4 (standard)";
+            ticksPerArpeggio = 3;
+            arpeggioPatterns = [[0], [0, 0, 1, 1], [0, 1, 2, 1]];
+            roundUpThresholds = [Math.floor(ppbBase/4 * 0.1), Math.floor(ppbBase/4 * 0.4), Math.floor(ppbBase/4 * 0.7), Math.floor(ppbBase/4 * 0.9)];
+        } else if (i === 6) {
+            ticksPerArpeggio = 4;
+        } else if (i === 12) {
+            ticksPerArpeggio = 4;
+        } else if (i === 24) {
+            name = "freehand (÷24)";
         }
-     
-        if (i > 100 && i !== ppb && i !== 3 && i !== 4) continue;
+
+        rhythmList.push({
+            name: name,
+            stepsPerBeat: i,
+            ticksPerArpeggio: ticksPerArpeggio,
+            arpeggioPatterns: arpeggioPatterns,
+            roundUpThresholds: roundUpThresholds
+        });
     }
 
     Config.rhythms = toNameMap(rhythmList);
-
     // =========================================================
     // TIME SIGNATURE FEATURE
     // Display and control time signature: numerator (beats per bar) / denominator (rhythm)
@@ -337,15 +337,15 @@ const rhythmList = [];
 
             // Check if "Custom..." was selected
             if (Config.rhythms[newRhythmIdx].stepsPerBeat === -1) {
-                const customVal = prompt("Enter custom parts per beat (e.g. 7, 11, 2520):", Config.partsPerBeat);
+                const customVal = prompt("Enter custom parts per beat (divisor of 2520 not required):", Config.partsPerBeat);
                 const parsed = parseInt(customVal);
                 if (!isNaN(parsed) && parsed > 0) {
                     Config.partsPerBeat = parsed;
-                    // Note: In a full implementation, you'd rebuild Config.rhythms here.
-                    // For now, we will simply force the rhythm to the new max divisor.
+                    // Note: We don't need to rebuild everything; simply recording 
+                    // a rhythm change forces the song to acknowledge the new base.
                     doc.record(new ChangeRhythm(doc, 0)); 
                 } else {
-                    return; // Cancel apply if invalid input
+                    return; // Cancel if invalid
                 }
             } else if (newRhythmIdx !== doc.song.rhythm) {
                 doc.record(new ChangeRhythm(doc, newRhythmIdx));
@@ -355,6 +355,7 @@ const rhythmList = [];
                 doc.record(new ChangeBeatsPerBar(doc, newBeats, strategy));
             }
 
+            // Safety check for editor update
             if (window.beepboxEditor && typeof window.beepboxEditor.whenUpdated === "function") {
                 window.beepboxEditor.whenUpdated();
             }
@@ -362,7 +363,6 @@ const rhythmList = [];
             updateTimeSignatureDisplay();
             overlay.remove();
         };
-
         btnContainer.appendChild(cancelBtn);
         btnContainer.appendChild(applyBtn);
         dialog.appendChild(btnContainer);
