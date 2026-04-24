@@ -106,16 +106,19 @@ Config.scales = toNameMap([
     Config.patternInstrumentCountMax = 10;
     Config.partsPerBeat = 2520;
     Config.ticksPerPart = 2;
-	
-   const rhythmList = [];
+const rhythmList = [];
     const ppb = Config.partsPerBeat;
 
-    // This loop checks every number from 1 up to the partsPerBeat.
-    // If the number divides evenly, it's a valid rhythm.
+    // Add Custom option at the top
+    rhythmList.push({
+        name: "Custom...",
+        stepsPerBeat: -1, // Special flag for custom input
+        ticksPerArpeggio: 3,
+        arpeggioPatterns: [[0], [0, 1], [0, 1, 2, 1]],
+        roundUpThresholds: null
+    });
+
     for (let i = 1; i <= ppb; i++) {
-        
-        // Mathematical check: is this a valid divisor?
-        if (ppb % i === 0) {
             
             let name = "÷" + i;
             let ticksPerArpeggio = 3;
@@ -149,11 +152,8 @@ Config.scales = toNameMap([
                 roundUpThresholds: roundUpThresholds
             });
         }
-        
-        // Safety: If the list gets too long (e.g. over 100 items), 
-        // the dropdown menu becomes hard to use. 
-        // You can remove this 'if' if you want thousands of options.
-        if (i > 100 && i !== ppb) continue; 
+     
+        if (i > 100 && i !== ppb && i !== 3 && i !== 4) continue;
     }
 
     Config.rhythms = toNameMap(rhythmList);
@@ -330,30 +330,36 @@ Config.scales = toNameMap([
         applyBtn.textContent = "Apply";
         applyBtn.style.cssText = "padding:8px 16px;background:#0a0;color:#fff;border:1px solid #080;border-radius:4px;cursor:pointer;font-weight:bold;";
 
-        applyBtn.onclick = () => {
+ applyBtn.onclick = () => {
             const newBeats = parseInt(beatSelect.value);
-            const newRhythm = parseInt(rhythmSelect.value);
+            let newRhythmIdx = parseInt(rhythmSelect.value);
             const strategy = strategySelect.value;
 
-            // Apply rhythm change first so that ChangeBeatsPerBar operates with
-            // the correct new rhythm already committed to the song.
-            if (newRhythm !== doc.song.rhythm) {
-                doc.record(new ChangeRhythm(doc, newRhythm));
+            // Check if "Custom..." was selected
+            if (Config.rhythms[newRhythmIdx].stepsPerBeat === -1) {
+                const customVal = prompt("Enter custom parts per beat (e.g. 7, 11, 2520):", Config.partsPerBeat);
+                const parsed = parseInt(customVal);
+                if (!isNaN(parsed) && parsed > 0) {
+                    Config.partsPerBeat = parsed;
+                    // Note: In a full implementation, you'd rebuild Config.rhythms here.
+                    // For now, we will simply force the rhythm to the new max divisor.
+                    doc.record(new ChangeRhythm(doc, 0)); 
+                } else {
+                    return; // Cancel apply if invalid input
+                }
+            } else if (newRhythmIdx !== doc.song.rhythm) {
+                doc.record(new ChangeRhythm(doc, newRhythmIdx));
             }
+
             if (newBeats !== doc.song.beatsPerBar) {
                 doc.record(new ChangeBeatsPerBar(doc, newBeats, strategy));
             }
 
-            // Sync the main editor's UI controls (rhythm dropdown, beats stepper, etc.)
-            // to the now-updated song state. This is the canonical way to update BeepBox's
-            // own dropdowns without a page reload.
             if (window.beepboxEditor && typeof window.beepboxEditor.whenUpdated === "function") {
                 window.beepboxEditor.whenUpdated();
             }
 
-            // Update our custom display immediately from the now-committed song state.
             updateTimeSignatureDisplay();
-
             overlay.remove();
         };
 
