@@ -18,324 +18,232 @@
 	<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
 	<link rel="icon" type="image/png" sizes="32x32" href="icon_32.png" />
 	<link rel="manifest" href="manifest.webmanifest" />
-	<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" rel="stylesheet" media="none" onload="if (this.media != 'all') this.media='all';" /> <!-- this is a trick to load CSS asynchronously. -->
+	<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" rel="stylesheet" media="none" onload="if (this.media != 'all') this.media='all';" />
 	<style type="text/css">
-		html {
-			background: var(--page-margin, black);
-			overflow-x: hidden;
-			font-size: large;
+		/* Your New Base CSS */
+		html, body {
+			margin: 0;
+			padding: 0;
+			background: black;
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
 			font-family: 'Roboto', sans-serif;
 			line-height: 1.3;
 			color: var(--primary-text, white);
 		}
-		/* Create the stars on html element to avoid body stacking context issues */
-    html::before, html::after {
-        content: "";
-        position: fixed;
-        top: 0;
-        left: 0;
-        background: transparent;
-        pointer-events: none;
-        z-index: 0;
-    }
 
-    /* Layer 1: Small distant stars */
-    html::before {
-        box-shadow: 
-            154px 321px #FFF, 854px 124px #FFF, 321px 654px #FFF, 
-            987px 432px #FFF, 120px 876px #FFF, 543px 210px #FFF,
-            1245px 543px #FFF, 432px 12px #FFF, 876px 987px #FFF,
-            234px 567px #FFF, 765px 345px #FFF, 912px 678px #FFF;
-        width: 1px;
-        height: 1px;
-        opacity: 0.5;
-    }
+		#starfield {
+			position: fixed;
+			top: 0;
+			left: 0;
+			z-index: 0;
+			width: 100%;
+			height: 100%;
+			display: block;
+			pointer-events: none;
+		}
 
-    /* Layer 2: Larger closer stars with a twinkle */
-    html::after {
-        box-shadow: 
-            245px 456px #FFF, 754px 234px #FFF, 123px 987px #FFF, 
-            876px 123px #FFF, 543px 765px #FFF, 321px 124px #FFF;
-        width: 2px;
-        height: 2px;
-        animation: twinkle 5s infinite ease-in-out;
-    }
+		/* UI Containers */
+		#beepboxEditorContainer, #text-content {
+			position: relative;
+			z-index: 1;
+			background: var(--editor-background, rgba(0,0,0,0.8)); /* Slight transparency looks nice with stars */
+			width: 100%;
+			max-width: 710px;
+			padding-left: 30px;
+			padding-right: 30px;
+		}
 
-    @keyframes twinkle {
-        0%, 100% { opacity: 0.3; }
-        50% { opacity: 1; }
-    }
 		body {
 			margin: auto;
-			overflow-x: hidden;
+			overflow-y: auto; /* Allow scrolling through the editor */
 			display: flex;
 			flex-direction: column;
 			align-items: center;
-			align-content: center;
 		}
+
 		#beepboxEditorContainer {
 			min-height: 645px;
-			overflow: auto;
-			background: var(--editor-background, black);
-			width: 100%;
-			max-width: 710px;
-			padding-left: 30px;
-			padding-right: 30px;
+			margin-top: 20px;
 		}
-		#text-content {
-			overflow: auto;
-			background: var(--editor-background, black);
-			width: 100%;
-			max-width: 710px;
-			padding-left: 30px;
-			padding-right: 30px;
+
+		h1, h2 { text-align: center; -webkit-text-stroke-width: 0; }
+		h1 { font-size: 1.7rem; }
+		h2 { font-size: 1.5rem; }
+		a { color: var(--link-accent, #98f); }
+
+		.column-container {
+			width: 710px;
+			display: flex;
+			gap: 25px;
+			padding-bottom: 50px;
 		}
-		h1 {
-			font-size: 1.7rem;
-			text-align: center;
-			margin-top: 0.5em;
-			margin-bottom: 0.5em;
-			-webkit-text-stroke-width: 0;
-		}
-		h2 {
-			font-size: 1.5rem;
-			text-align: center;
-			margin-top: 0.5em;
-			margin-bottom: 0.5em;
-			-webkit-text-stroke-width: 0;
-		}
-		a {
-			color: var(--link-accent, #98f);
-		}
-		.donation form {
-			display: inline;
-		}
-		.donation input[type="submit"] {
-			-webkit-appearance: none;
-			appearance: none;
-			background: none;
-			border: none;
-			font-family: inherit;
-			font-size: inherit;
-			color: var(--link-accent, #98f);
-			text-decoration: underline;
-			cursor: pointer;
-			padding: 0;
-			margin: 0;
-		}
-		
-		/* wide screen */
-		@media (min-width: 711px) {
-			html {
-				width: 100%;
-			}
-			body {
-				width: 100%;
-			}
-			.column-container {
-				width: 710px;
-				display: flex;
-				gap: 25px;
-			}
-			.instructions-column {
-				min-width: 0;
-			}
-		}
-		
-		/* narrow screen */
+
 		@media (max-width: 710px) {
-			body {
+			.column-container {
+				flex-direction: column;
 				width: 100%;
 			}
-			p, .donation {
-				margin: 1em 0.5em;
-			}
-			.column-container {
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-			}
+			p, .donation { margin: 1em 0.5em; }
+		}
+
+		.donation form { display: inline; }
+		.donation input[type="submit"] {
+			background: none; border: none; font-family: inherit; font-size: inherit;
+			color: var(--link-accent, #98f); text-decoration: underline; cursor: pointer;
 		}
 	</style>
 </head>
 
 <body>
+	<canvas id="starfield"></canvas>
+
 	<div id="beepboxEditorContainer">
-		<noscript>
-			Sorry, TimeBox requires a JavaScript-enabled browser.
-		</noscript>
+		<noscript>Sorry, TimeBox requires a JavaScript-enabled browser.</noscript>
 	</div>
+
 	<div id="text-content">
 		<section>
-			<h1>
-				TimeBox
-			</h1>
-			<p id="introduction">
-				TimeBox is an online tool for sketching and sharing instrumental music. 
-			</p>
+			<h1>TimeBox</h1>
+			<p id="introduction">TimeBox is an online tool for sketching and sharing instrumental music.</p>
 			<p>
 				All song data is contained in the URL at the top of your browser. 
-				When you make changes to the song, the URL is updated to reflect your changes. 
-				When you are satisfied with your song, just copy and paste the URL to save and share your song! 
+				When you make changes, the URL updates. Copy it to share!
 			</p>
 			<div class="donation">
-				BeepBox is a passion project, and will always be free to use. If you find it valuable and have the means, any gratuity via
+				Gratuity via
 				<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
 					<input type="hidden" name="cmd" value="_donations" />
 					<input type="hidden" name="business" value="QZJTX9GRYEV9N" />
 					<input type="hidden" name="currency_code" value="USD" />
 					<input type="submit" name="submit" value="Paypal"/>
 				</form>
-				would be appreciated!
+				is appreciated!
 			</div>
 		</section>
 	
 		<div class="column-container">
 			<main class="instructions-column">
 				<section>
-					<h2>
-						Instructions
-					</h2>
-					<p>
-						You can add or remove notes by clicking on the gray rows at the top. 
-						BeepBox automatically plays the notes out loud for you. Try it!
-					</p>
-					<p>
-						Notes go into patterns, and you can edit one pattern at a time.
-						Those numbered boxes at the bottom of the editor are the different patterns you can edit.
-						<span id="bar-editing">
-							Click the boxes to move to a different part of the song, or click the arrows on the currently selected box to swap which pattern is played during that part of the song.
-						</span>
-					</p>
-					<p>
-						Timebox can play several rows of patterns simultaneously, and each row has its own set of patterns. 
-						Most rows can play melodies or harmonies, but the bottom row is for drums.
-					</p>
-					<p>
-						The purple loop underneath the numbered boxes controls which part of the song is currently repeating. 
-						Move the loop to listen to a different part of the song, or drag the ends to expand the loop to include the whole song. 
-					</p>
+					<h2>Instructions</h2>
+					<p>Add/remove notes by clicking the gray rows. Patterns are edited via the numbered boxes at the bottom.</p>
 					<div id="keyboard-instructions">
-						<p>
-							When BeepBox has focus (click on its interface above), you can use these keyboard shortcuts: <br/>
-						</p>
 						<ul>
-							<li><b>Spacebar</b>: play or pause the song</li>
-							<li><b>Shift Spacebar</b>: play from mouse location</li>
-							<li><b>Z</b>: undo, <b>Y or Shift Z</b>: redo</li>
-							<li><b>C/V</b>: copy/paste selected pattern(s)</li>
-							<li><b>0-9</b>: assign pattern number to selection</li>
-							<li><b>Arrows</b>: move selection</li>
-							<li><b>Ctrl + Arrows</b>: rearrange channels</li>
-							<li><b>[ ]</b>: move playhead backward or forward</li>
-							<li><b>F/H</b>: move to First or Highlighted pattern </li>
-							<li><b>Shift & Drag</b>: select part of a pattern</li>
-							<li>Check BeepBox's edit menu for more!</li>
+							<li><b>Spacebar</b>: play/pause</li>
+							<li><b>Z/Y</b>: undo/redo</li>
+							<li><b>C/V</b>: copy/paste</li>
 						</ul>
 					</div>
-					<p>
-						In the note pattern editor, you can click and drag horizontally on a note to adjust its duration.
-						You can also click above or below an existing note to add more notes to be played simultaneously, which is called a chord. 
-					</p>
-					<div id="mobile-instructions" style="display: none;">
-						<p>
-							You can also long-press in the pattern editor to select a time range within a pattern, which you can then drag to move multiple notes at once.<br/>
-						</p>
-					</div>
-					<p>
-						ADVANCED: Drag vertically from an existing note to bend its pitch, or drag vertically from above or below the note to adjust its volume. Drag on the numbered pattern boxes to select multiple patterns to copy and paste parts of your song.
-					</p>
-					<p>
-						BeepBox has many more features. 
-						Try playing with the buttons and menus on the right side to find out what it can do!
-						You can also click on the label next to each option for a description of what it does.
-					</p>
-					<p>
-						Want to see what people have made with BeepBox? Songs that were shared on Twitter prior to 2023-05-22 can now be browsed in <a href="https://twitter-archive.beepbox.co/" target="_blank">this interactive archive</a>!
-					</p>
 				</section>
-				<section>
-					<h2>
-						About
-					</h2>
-					<p>
-						BeepBox is developed by <a href="https://johnnesky.com/" target="_blank">John Nesky</a>.
-					</p>
-					<p>
-						BeepBox does not claim ownership over songs created with it, so original songs belong to their authors. 
-					</p>
-					<p>
-						Neither John Nesky nor BeepBox assume responsibility for any copyrighted material played on BeepBox. No songs are ever received, recorded, or distributed by BeepBox's servers. All song data is contained in the URL after the hash (#) mark, and your song data will not leave your device unless you copy and share the URL. BeepBox does not collect, track, or share any user data. 
-					</p>
-					<p>
-						You can find the <a href="https://github.com/johnnesky/beepbox/releases/" target="_blank">release notes for the latest versions of BeepBox here</a>. Those who yearn for simpler times can still use the <a id="linkTo2_3" href="2_3/" target="_blank">2.3</a> or <a id="linkTo3_0" href="3_0/" target="_blank">3.0.13</a> versions of BeepBox.
-					</p>
-					<p id="offline-instructions">
-						You can download <a download="beepbox_offline.html" href="beepbox_offline.html">an offline version of BeepBox</a> to use when you don't have access to the internet. The features are otherwise the same.
-					</p>
-					<p>
-						You can download and use <a href="https://github.com/johnnesky/beepbox" target="_blank">the source code</a> under the MIT license. In particular, you can use the synth code <a href="synth_example.html" target="_blank">as demonstrated here</a> to play BeepBox songs in your own JavaScript projects!
-					</p>
-				<section>
 			</main>
 		</div>
 	</div>
-	
-	<!--
-	Instead of loading js beepbox editor interface directly, test for browser support.
-	<script type="text/javascript" src="beepbox_editor.js"></script>
-	-->
+
 	<script type="text/javascript">
-		let editor;
-		
-		if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|android|ipad|playbook|silk/i.test(navigator.userAgent) ) {
-			document.getElementById("introduction").innerHTML = "BeepBox is an online tool for sketching and sharing instrumental music. Make sure that your volume is turned up, then press the play button!";
-			document.getElementById("keyboard-instructions").style.display = "none";
-			document.getElementById("mobile-instructions").style.display = "";
-			document.getElementById("bar-editing").innerHTML = "Tap the boxes to move to a different part of the song, or tap on the currently selected box to swap which pattern is played during that part of the song.";
-			document.getElementById("offline-instructions").innerHTML = 'You can use BeepBox when your device is offline if you put a shortcut to BeepBox on your home screen. <ul><li>Chrome: find the "Add to Home Screen" option in the ⋮ menu.</li><li>Firefox: find the "Add Page Shortcut" option in the ⋮ menu.</li><li>Safari: find the "Add to Home Screen" option in the bookmark menu.</li></ul>';
+		// --- STARFIELD LOGIC ---
+		const canvas = document.getElementById("starfield");
+		const ctx = canvas.getContext("2d");
+		let stars = [];
+		let shootingStars = [];
+		const numStars = 360;
+		let animationId;
+
+		function resizeCanvas() {
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+			initStars();
 		}
-		
-		function browserHasRequiredFeatures() {
-			"use strict";
-			if (window.AudioContext == undefined && window.webkitAudioContext == undefined) {
-				return false;
+
+		function initStars() {
+			stars = Array.from({ length: numStars }, () => ({
+				angle: Math.random() * Math.PI * 2,
+				radius: Math.random() * Math.sqrt(canvas.width ** 2 + canvas.height ** 2),
+				speed: Math.random() * 0.0003 + 0.00015,
+				size: Math.random() * 1.2 + 0.5,
+			}));
+		}
+
+		function spawnShootingStar() {
+			if (shootingStars.length === 0 && Math.random() < 0.01) {
+				shootingStars.push({
+					x: Math.random() * canvas.width * 0.5,
+					y: Math.random() * canvas.height * 0.5,
+					vx: 3 + Math.random() * 2,
+					vy: 1 + Math.random() * 1.5,
+					life: 80,
+					initialLife: 80,
+				});
 			}
-			
+		}
+
+		function animate() {
+			const centerX = canvas.width;
+			const centerY = canvas.height;
+			ctx.fillStyle = "#161618";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+			stars.forEach((star, i) => {
+				star.angle += star.speed;
+				const x = centerX + star.radius * Math.cos(star.angle);
+				const y = centerY + star.radius * Math.sin(star.angle);
+				const flicker = 0.4 + Math.abs(Math.sin(Date.now() * 0.0015 + i)) * 0.5;
+				ctx.beginPath();
+				ctx.fillStyle = `rgba(255, 255, 255, ${flicker})`;
+				ctx.arc(x, y, star.size, 0, Math.PI * 2);
+				ctx.fill();
+			});
+
+			spawnShootingStar();
+			for (let i = shootingStars.length - 1; i >= 0; i--) {
+				const s = shootingStars[i];
+				const opacity = s.life / s.initialLife;
+				const grad = ctx.createLinearGradient(s.x, s.y, s.x - s.vx * 35, s.y - s.vy * 35);
+				grad.addColorStop(0, `rgba(255, 255, 255, ${opacity})`);
+				grad.addColorStop(1, `rgba(255, 255, 255, 0)`);
+				ctx.strokeStyle = grad;
+				ctx.lineWidth = 2;
+				ctx.beginPath();
+				ctx.moveTo(s.x, s.y);
+				ctx.lineTo(s.x - s.vx * 18, s.y - s.vy * 18);
+				ctx.stroke();
+				s.x += s.vx; s.y += s.vy; s.life -= 1;
+				if (s.life <= 0) shootingStars.splice(i, 1);
+			}
+			animationId = requestAnimationFrame(animate);
+		}
+
+		window.addEventListener("resize", resizeCanvas);
+		resizeCanvas();
+		animate();
+
+		// --- BEEPBOX LOGIC ---
+		let editor;
+		if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+			document.getElementById("introduction").innerHTML = "BeepBox is an online tool for music. Turn up volume and press play!";
+			document.getElementById("keyboard-instructions").style.display = "none";
+		}
+
+		function browserHasRequiredFeatures() {
+			if (window.AudioContext == undefined && window.webkitAudioContext == undefined) return false;
 			try {
 				eval("class T {}");
 				eval("const a = () => 0");
-				eval("for (const a of []);");
-			} catch (error) {
-				return false;
-			}
-			
+			} catch (error) { return false; }
 			return true;
 		}
-		
+
 		if (browserHasRequiredFeatures()) {
-			// Go ahead and load js beepbox editor interface:
 			var fileref = document.createElement("script");
 			fileref.setAttribute("type", "text/javascript");
-			fileref.addEventListener("load", function(event) {
+			fileref.src = "beepbox_editor.js";
+			fileref.addEventListener("load", function() {
 				editor = new beepbox.SongEditor(document.getElementById("beepboxEditorContainer"));
 			});
-			// Point to the correct folder and file name
-                           fileref.setAttribute("src", "beepbox_editor.js");
 			document.head.appendChild(fileref);
 		} else {
-			document.getElementById("beepboxEditorContainer").innerHTML = "Sorry, BeepBox doesn't support your browser. Try a recent version of Chrome, Firefox, Edge, Safari, or Opera.";
+			document.getElementById("beepboxEditorContainer").innerHTML = "Browser not supported.";
 		}
-		
-		// If the page was loaded with an old song version that old versions of BeepBox support,
-		// update the links to the old versions so that they'll open the song.
-		if (/^#[1-6]/.test(location.hash)) {
-			document.getElementById("linkTo2_3").href += location.hash;
-		}
-		if (/^#[1-8]/.test(location.hash)) {
-			document.getElementById("linkTo3_0").href += location.hash;
-		}
-		
 	</script>
 </body>
 </html>
