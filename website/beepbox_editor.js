@@ -2032,6 +2032,17 @@ Config.chipWaves = toNameMap([
     background-color: ${ColorConfig.editorBackground};
 }
 
+.beepboxEditor .timeSignatureEditor {
+    height: 20px;
+    position: sticky;
+    bottom: 30px;
+    background-color: ${ColorConfig.editorBackground};
+    border-bottom: 1px solid ${ColorConfig.uiWidgetBackground};
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
 .beepboxEditor .settings-area {
     grid-area: settings-area;
     display: grid;
@@ -5419,6 +5430,17 @@ Config.chipWaves = toNameMap([
         getChannelIsNoise(channelIndex) {
             return (channelIndex >= this.pitchChannelCount);
         }
+        // Returns the beats-per-bar in effect for the given bar index,
+        // respecting any per-bar override set by the TimeSignatureEditor.
+        getEffectiveBeatsPerBar(barIndex) {
+            const o = this.barTimeSignatures[barIndex];
+            return (o != null) ? o.beats : this.beatsPerBar;
+        }
+        // Returns the rhythm index in effect for the given bar index.
+        getEffectiveRhythm(barIndex) {
+            const o = this.barTimeSignatures[barIndex];
+            return (o != null) ? o.rhythm : this.rhythm;
+        }
         initToDefault(andResetChannels = true) {
             this.scale = 0;
             this.key = 0;
@@ -5431,6 +5453,9 @@ Config.chipWaves = toNameMap([
             this.rhythm = 4;
             this.layeredInstruments = false;
             this.patternInstruments = false;
+            // Per-bar time signature overrides. Sparse array: index = bar number.
+            // Each entry is {beats: number, rhythm: number} or left undefined (= use global).
+            this.barTimeSignatures = [];
             if (andResetChannels) {
                 this.pitchChannelCount = 3;
                 this.noiseChannelCount = 1;
@@ -5480,6 +5505,32 @@ Config.chipWaves = toNameMap([
             buffer.push(106, base64IntToCharCode[(this.patternsPerChannel - 1) >> 6], base64IntToCharCode[(this.patternsPerChannel - 1) & 0x3f]);
             buffer.push(114, base64IntToCharCode[this.rhythm]);
             buffer.push(105, base64IntToCharCode[(this.layeredInstruments << 1) | this.patternInstruments]);
+            // Serialize per-bar time signature overrides.
+            // Format: opcode 'T' (84 is already used for instrument type, use 'W'=87 instead)
+            // 'W' barCount entries: each is 0 (no override) or 1 (has override).
+            // Overriding bars then get beats-1 and rhythmIndex packed.
+            {
+                const overrides = [];
+                for (let i = 0; i < this.barCount; i++) {
+                    const o = this.barTimeSignatures[i];
+                    overrides.push(o != null ? 1 : 0);
+                }
+                // Check if any overrides exist before emitting this block.
+                if (overrides.some(v => v === 1)) {
+                    buffer.push(88); // 'X' — per-bar time signature overrides
+                    for (let i = 0; i < this.barCount; i++) {
+                        const o = this.barTimeSignatures[i];
+                        if (o != null) {
+                            // bit 6 = has-override flag, bits 0-5 = bar index packed separately
+                            buffer.push(base64IntToCharCode[1]); // has override
+                            buffer.push(base64IntToCharCode[Math.min(63, o.beats - 1)]);
+                            buffer.push(base64IntToCharCode[Math.min(63, o.rhythm)]);
+                        } else {
+                            buffer.push(base64IntToCharCode[0]); // no override
+                        }
+                    }
+                }
+            }
             if (this.layeredInstruments || this.patternInstruments) {
                 for (let channelIndex = 0; channelIndex < this.getChannelCount(); channelIndex++) {
                     buffer.push(base64IntToCharCode[this.channels[channelIndex].instruments.length - Config.instrumentCountMin]);
@@ -5997,6 +6048,20 @@ Config.chipWaves = toNameMap([
                     case 114:
                         {
                             this.rhythm = base64CharCodeToInt[compressed.charCodeAt(charIndex++)];
+                        }
+                        break;
+                    case 88: // 'X' — per-bar time signature overrides
+                        {
+                            this.barTimeSignatures = [];
+                            for (let i = 0; i < this.barCount; i++) {
+                                const hasOverride = base64CharCodeToInt[compressed.charCodeAt(charIndex++)];
+                                if (hasOverride === 1) {
+                                    const beats = base64CharCodeToInt[compressed.charCodeAt(charIndex++)] + 1;
+                                    const rhythm = base64CharCodeToInt[compressed.charCodeAt(charIndex++)];
+                                    this.barTimeSignatures[i] = { beats, rhythm };
+                                }
+                                // else: leave index undefined (no override)
+                            }
                         }
                         break;
                     case 111:
@@ -8110,7 +8175,7 @@ Config.chipWaves = toNameMap([
                 this.playheadInternal = Math.max(0, Math.min(this.song.barCount, value));
                 let remainder = this.playheadInternal;
                 this.bar = Math.floor(remainder);
-                remainder = this.song.beatsPerBar * (remainder - this.bar);
+                remainder = this.song.getEffectiveBeatsPerBar(this.bar) * (remainder - this.bar);
                 this.beat = Math.floor(remainder);
                 remainder = Config.partsPerBeat * (remainder - this.beat);
                 this.part = Math.floor(remainder);
@@ -8124,7 +8189,7 @@ Config.chipWaves = toNameMap([
         getSamplesPerBar() {
             if (this.song === null)
                 throw new Error();
-            return this.getSamplesPerTick() * Config.ticksPerPart * Config.partsPerBeat * this.song.beatsPerBar;
+            return this.getSamplesPerTick() * Config.ticksPerPart * Config.partsPerBeat * this.song.getEffectiveBeatsPerBar(this.bar);
         }
         getTicksIntoBar() {
             return (this.beat * Config.partsPerBeat + this.part) * Config.ticksPerPart + this.tick;
@@ -8361,7 +8426,7 @@ Config.chipWaves = toNameMap([
                 this.isAtStartOfTick = true;
             }
             if (playSong) {
-                if (this.beat >= song.beatsPerBar) {
+                if (this.beat >= song.getEffectiveBeatsPerBar(this.bar)) {
                     this.beat = 0;
                     this.part = 0;
                     this.tick = 0;
@@ -8447,7 +8512,7 @@ Config.chipWaves = toNameMap([
                 if (this.enableMetronome || this.countInMetronome) {
                     if (this.part === 0) {
                         if (!this.startedMetronome) {
-                            const midBeat = (song.beatsPerBar > 4 && (song.beatsPerBar % 2 === 0) && this.beat === song.beatsPerBar / 2);
+                            const midBeat = (song.getEffectiveBeatsPerBar(this.bar) > 4 && (song.getEffectiveBeatsPerBar(this.bar) % 2 === 0) && this.beat === song.getEffectiveBeatsPerBar(this.bar) / 2);
                             const periods = (this.beat === 0) ? 8 : midBeat ? 6 : 4;
                             const hz = (this.beat === 0) ? 1600 : midBeat ? 1200 : 800;
                             const amplitude = (this.beat === 0) ? 0.06 : midBeat ? 0.05 : 0.04;
@@ -8517,7 +8582,7 @@ Config.chipWaves = toNameMap([
                             this.part = 0;
                             if (playSong) {
                                 this.beat++;
-                                if (this.beat === song.beatsPerBar) {
+                                if (this.beat === song.getEffectiveBeatsPerBar(this.bar)) {
                                     this.beat = 0;
                                     if (this.countInMetronome) {
                                         this.countInMetronome = false;
@@ -8546,7 +8611,7 @@ Config.chipWaves = toNameMap([
                 limit = 0.0;
             this.limit = limit;
             if (playSong && !this.countInMetronome) {
-                this.playheadInternal = (((this.tick + 1.0 - this.tickSampleCountdown / samplesPerTick) / 2.0 + this.part) / Config.partsPerBeat + this.beat) / song.beatsPerBar + this.bar;
+                this.playheadInternal = (((this.tick + 1.0 - this.tickSampleCountdown / samplesPerTick) / 2.0 + this.part) / Config.partsPerBeat + this.beat) / song.getEffectiveBeatsPerBar(this.bar) + this.bar;
             }
         }
         freeTone(tone) {
@@ -8760,7 +8825,7 @@ Config.chipWaves = toNameMap([
                     const instrument = channel.instruments[instrumentIndex];
                     let prevNoteForThisInstrument = prevNote;
                     let nextNoteForThisInstrument = nextNote;
-                    const partsPerBar = Config.partsPerBeat * song.beatsPerBar;
+                    const partsPerBar = Config.partsPerBeat * song.getEffectiveBeatsPerBar(this.bar);
                     const transition = instrument.getTransition();
                     const chord = instrument.getChord();
                     let forceContinueAtStart = false;
@@ -13559,6 +13624,20 @@ Config.chipWaves = toNameMap([
                         doc.barScrollPos = Math.max(0, doc.barScrollPos + diff);
                     }
                     doc.song.loopStart = Math.max(0, doc.song.loopStart + diff);
+                    // Shift barTimeSignatures to match bar shift.
+                    if (diff > 0) {
+                        for (let i = newValue - 1; i >= diff; i--) {
+                            doc.song.barTimeSignatures[i] = doc.song.barTimeSignatures[i - diff];
+                        }
+                        for (let i = 0; i < diff; i++) doc.song.barTimeSignatures[i] = undefined;
+                    } else if (diff < 0) {
+                        for (let i = 0; i < newValue; i++) {
+                            doc.song.barTimeSignatures[i] = doc.song.barTimeSignatures[i - diff];
+                        }
+                        doc.song.barTimeSignatures.length = newValue;
+                    }
+                } else {
+                    doc.song.barTimeSignatures.length = newValue;
                 }
                 doc.bar = Math.min(doc.bar, newValue - 1);
                 doc.song.loopLength = Math.min(newValue, doc.song.loopLength);
@@ -13581,6 +13660,11 @@ Config.chipWaves = toNameMap([
                     channel.bars.splice(start, 0, 0);
                 }
             }
+            // Insert undefined slots into barTimeSignatures at the same position.
+            for (let i = 0; i < count; i++) {
+                doc.song.barTimeSignatures.splice(start, 0, undefined);
+            }
+            doc.song.barTimeSignatures.length = newLength;
             doc.song.barCount = newLength;
             doc.bar += count;
             doc.barScrollPos += count;
@@ -13602,6 +13686,7 @@ Config.chipWaves = toNameMap([
                 if (channel.bars.length === 0)
                     channel.bars.push(0);
             }
+            doc.song.barTimeSignatures.splice(start, count);
             doc.song.barCount = Math.max(1, doc.song.barCount - count);
             doc.bar = Math.max(0, doc.bar - count);
             doc.barScrollPos = Math.max(0, doc.barScrollPos - count);
@@ -14179,6 +14264,23 @@ Config.chipWaves = toNameMap([
             super();
             if (doc.song.key != newValue) {
                 doc.song.key = newValue;
+                doc.notifier.changed();
+                this._didSomething();
+            }
+        }
+    }
+    class ChangeBarTimeSignature extends Change {
+        constructor(doc, barIndex, beats, rhythm) {
+            super();
+            // beats=null means "clear override and use global default"
+            const old = doc.song.barTimeSignatures[barIndex];
+            const newVal = (beats == null) ? undefined : { beats, rhythm };
+            const oldBeats = old != null ? old.beats : null;
+            const oldRhythm = old != null ? old.rhythm : null;
+            const newBeats = newVal != null ? newVal.beats : null;
+            const newRhythm = newVal != null ? newVal.rhythm : null;
+            if (oldBeats !== newBeats || oldRhythm !== newRhythm) {
+                doc.song.barTimeSignatures[barIndex] = newVal;
                 doc.notifier.changed();
                 this._didSomething();
             }
@@ -19813,6 +19915,180 @@ Config.chipWaves = toNameMap([
         }
     }
 
+    class TimeSignatureEditor {
+        constructor(_doc) {
+            this._doc = _doc;
+            this._editorHeight = 20;
+            this._barWidth = 32;
+            this._renderedBarCount = 0;
+            this._renderedBarWidth = -1;
+            this._svg = SVG.svg({ style: "position: absolute; top: 0; overflow: visible;" });
+            this.container = HTML.div({ class: "timeSignatureEditor", style: "touch-action: pan-y; position: relative;" }, this._svg);
+            this._onMouseDown = (event) => {
+                if (event.button !== 0) return;
+                const boundingRect = this._svg.getBoundingClientRect();
+                const mouseX = (event.clientX || event.pageX) - boundingRect.left;
+                const barIndex = Math.floor(mouseX / this._barWidth);
+                if (barIndex >= 0 && barIndex < this._doc.song.barCount) {
+                    this._openDialog(barIndex);
+                }
+            };
+            this._onTouchEnd = (event) => {
+                event.preventDefault();
+                const boundingRect = this._svg.getBoundingClientRect();
+                const touch = event.changedTouches[0];
+                const mouseX = touch.clientX - boundingRect.left;
+                const barIndex = Math.floor(mouseX / this._barWidth);
+                if (barIndex >= 0 && barIndex < this._doc.song.barCount) {
+                    this._openDialog(barIndex);
+                }
+            };
+            this._documentChanged = () => {
+                this._render();
+            };
+            this._render();
+            this._doc.notifier.watch(this._documentChanged);
+            this.container.addEventListener("mousedown", this._onMouseDown);
+            this.container.addEventListener("touchend", this._onTouchEnd);
+        }
+
+        _openDialog(barIndex) {
+            const song = this._doc.song;
+            const override = song.barTimeSignatures[barIndex];
+            const currentBeats = override != null ? override.beats : song.beatsPerBar;
+            const currentRhythm = override != null ? override.rhythm : song.rhythm;
+
+            const overlay = HTML.div({ style: "position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;z-index:10000;" });
+            const dialog = HTML.div({ style: "background:#3a3a3a;border:2px solid #666;border-radius:8px;padding:20px;min-width:280px;max-width:360px;color:#ccc;font-family:Arial,sans-serif;" });
+
+            const title = HTML.h3({ style: "margin-top:0;color:#fff;font-size:15px;" });
+            title.textContent = "Time Signature \u2014 Bar " + (barIndex + 1);
+            dialog.appendChild(title);
+
+            const beatLabel = HTML.label({ style: "display:block;margin-top:8px;margin-bottom:4px;color:#bbb;font-size:12px;" });
+            beatLabel.textContent = "Beats per bar (numerator):";
+            dialog.appendChild(beatLabel);
+
+            const beatSelect = HTML.select({ style: "width:100%;padding:5px;background:#555;color:#fff;border:1px solid #666;border-radius:3px;margin-bottom:10px;" });
+            for (let i = Config.beatsPerBarMin; i <= Math.min(Config.beatsPerBarMax, 32); i++) {
+                const opt = HTML.option({});
+                opt.value = String(i);
+                opt.textContent = String(i);
+                if (i === currentBeats) opt.selected = true;
+                beatSelect.appendChild(opt);
+            }
+            dialog.appendChild(beatSelect);
+
+            const rhythmLabel = HTML.label({ style: "display:block;margin-bottom:4px;color:#bbb;font-size:12px;" });
+            rhythmLabel.textContent = "Rhythm / steps per beat (denominator):";
+            dialog.appendChild(rhythmLabel);
+
+            const rhythmSelect = HTML.select({ style: "width:100%;padding:5px;background:#555;color:#fff;border:1px solid #666;border-radius:3px;margin-bottom:10px;" });
+            for (let i = 0; i < Config.rhythms.length; i++) {
+                const opt = HTML.option({});
+                opt.value = String(i);
+                opt.textContent = Config.rhythms[i].name;
+                if (i === currentRhythm) opt.selected = true;
+                rhythmSelect.appendChild(opt);
+            }
+            dialog.appendChild(rhythmSelect);
+
+            const preview = HTML.div({ style: "text-align:center;font-size:24px;font-weight:bold;color:#fff;margin:8px 0;letter-spacing:2px;" });
+            const refreshPreview = () => {
+                const b = parseInt(beatSelect.value);
+                const ri = parseInt(rhythmSelect.value);
+                const denom = Config.rhythms[ri] ? Config.rhythms[ri].stepsPerBeat : 4;
+                preview.textContent = b + " / " + denom;
+            };
+            beatSelect.addEventListener("change", refreshPreview);
+            rhythmSelect.addEventListener("change", refreshPreview);
+            refreshPreview();
+            dialog.appendChild(preview);
+
+            const btnRow = HTML.div({ style: "display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px;" });
+
+            const cancelBtn = HTML.button({ style: "padding:7px 14px;background:#555;color:#ccc;border:1px solid #666;border-radius:4px;cursor:pointer;" });
+            cancelBtn.textContent = "Cancel";
+            cancelBtn.addEventListener("click", () => overlay.remove());
+
+            const clearBtn = HTML.button({ style: "padding:7px 14px;background:#744;color:#fcc;border:1px solid #966;border-radius:4px;cursor:pointer;" });
+            clearBtn.textContent = "Clear Override";
+            clearBtn.title = "Remove per-bar override and use the global time signature";
+            clearBtn.addEventListener("click", () => {
+                this._doc.record(new ChangeBarTimeSignature(this._doc, barIndex, null, null));
+                overlay.remove();
+            });
+
+            const applyBtn = HTML.button({ style: "padding:7px 14px;background:#0a0;color:#fff;border:1px solid #080;border-radius:4px;cursor:pointer;font-weight:bold;" });
+            applyBtn.textContent = "Apply";
+            applyBtn.addEventListener("click", () => {
+                const newBeats = parseInt(beatSelect.value);
+                const newRhythm = parseInt(rhythmSelect.value);
+                this._doc.record(new ChangeBarTimeSignature(this._doc, barIndex, newBeats, newRhythm));
+                overlay.remove();
+            });
+
+            btnRow.appendChild(cancelBtn);
+            btnRow.appendChild(clearBtn);
+            btnRow.appendChild(applyBtn);
+            dialog.appendChild(btnRow);
+
+            overlay.appendChild(dialog);
+            overlay.addEventListener("mousedown", (e) => { if (e.target === overlay) overlay.remove(); });
+            document.body.appendChild(overlay);
+        }
+
+        _render() {
+            this._barWidth = this._doc.getBarWidth();
+            const song = this._doc.song;
+            const barCount = song.barCount;
+
+            if (this._renderedBarCount !== barCount || this._renderedBarWidth !== this._barWidth) {
+                this._renderedBarCount = barCount;
+                this._renderedBarWidth = this._barWidth;
+                const editorWidth = this._barWidth * barCount;
+                this.container.style.width = editorWidth + "px";
+                this._svg.setAttribute("width", String(editorWidth));
+                this._svg.setAttribute("height", String(this._editorHeight));
+            }
+
+            while (this._svg.firstChild) this._svg.removeChild(this._svg.firstChild);
+
+            for (let i = 0; i < barCount; i++) {
+                const override = song.barTimeSignatures[i];
+                const hasOverride = override != null;
+                const beats = hasOverride ? override.beats : song.beatsPerBar;
+                const rhythmIdx = hasOverride ? override.rhythm : song.rhythm;
+                const denom = Config.rhythms[rhythmIdx] ? Config.rhythms[rhythmIdx].stepsPerBeat : 4;
+
+                const x = i * this._barWidth;
+                const w = this._barWidth;
+
+                const bg = SVG.rect({
+                    x: x + 1, y: 1,
+                    width: w - 2, height: this._editorHeight - 2,
+                    fill: hasOverride ? ColorConfig.loopAccent : ColorConfig.uiWidgetBackground,
+                    opacity: hasOverride ? "0.25" : "0.15",
+                    rx: 2,
+                });
+                this._svg.appendChild(bg);
+
+                const label = SVG.text({
+                    x: x + w / 2,
+                    y: this._editorHeight - 5,
+                    "text-anchor": "middle",
+                    fill: hasOverride ? ColorConfig.loopAccent : ColorConfig.secondaryText,
+                    "font-size": w >= 30 ? "9" : "7",
+                    "font-family": "monospace",
+                    "pointer-events": "none",
+                    "font-weight": hasOverride ? "bold" : "normal",
+                });
+                label.textContent = beats + "/" + denom;
+                this._svg.appendChild(label);
+            }
+        }
+    }
+
     class SpectrumEditor {
         constructor(_doc, _spectrumIndex) {
             this._doc = _doc;
@@ -23038,6 +23314,7 @@ You should be redirected to the song at:<br /><br />
             this._muteEditor = new MuteEditor(this.doc);
             this._trackEditor = new TrackEditor(this.doc);
             this._loopEditor = new LoopEditor(this.doc);
+            this._timeSignatureEditor = new TimeSignatureEditor(this.doc);
             this._octaveScrollBar = new OctaveScrollBar(this.doc);
             this._piano = new Piano(this.doc);
             this._playButton = button({ class: "playButton", type: "button", title: "Play (Space)" }, span("Play"));
@@ -23146,7 +23423,7 @@ You should be redirected to the song at:<br /><br />
             this._zoomOutButton = button({ class: "zoomOutButton", type: "button", title: "Zoom Out" });
             this._patternEditorRow = div({ style: "flex: 1; height: 100%; display: flex; overflow: hidden; justify-content: center;" }, this._patternEditorPrev.container, this._patternEditor.container, this._patternEditorNext.container);
             this._patternArea = div({ class: "pattern-area" }, this._piano.container, this._patternEditorRow, this._octaveScrollBar.container, this._zoomInButton, this._zoomOutButton);
-            this._trackContainer = div({ class: "trackContainer noSelection" }, this._trackEditor.container, this._loopEditor.container);
+            this._trackContainer = div({ class: "trackContainer noSelection" }, this._trackEditor.container, this._timeSignatureEditor.container, this._loopEditor.container);
             this._trackVisibleArea = div({ style: "position: absolute; width: 100%; height: 100%; pointer-events: none;" });
             this._trackAndMuteContainer = div({ class: "trackAndMuteContainer prefers-big-scrollbars" }, this._muteEditor.container, this._trackContainer, this._trackVisibleArea);
             this._barScrollBar = new BarScrollBar(this.doc);
