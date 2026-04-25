@@ -2041,6 +2041,7 @@ Config.chipWaves = toNameMap([
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
+    overflow: hidden;
 }
 
 .beepboxEditor .settings-area {
@@ -17773,7 +17774,7 @@ Config.chipWaves = toNameMap([
                             sequence.append(new ChangePatternSelection(this._doc, this._cursor.curNote.start, this._cursor.curNote.end));
                         }
                         else {
-                            const start = Math.max(0, Math.min((this._doc.song.beatsPerBar - 1) * Config.partsPerBeat, Math.floor(this._cursor.exactPart / Config.partsPerBeat) * Config.partsPerBeat));
+                            const start = Math.max(0, Math.min((this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset) - 1) * Config.partsPerBeat, Math.floor(this._cursor.exactPart / Config.partsPerBeat) * Config.partsPerBeat));
                             const end = start + Config.partsPerBeat;
                             sequence.append(new ChangePatternSelection(this._doc, start, end));
                         }
@@ -17810,11 +17811,11 @@ Config.chipWaves = toNameMap([
                     const minDivision = this._getMinDivision();
                     const currentPart = this._snapToMinDivision(this._mouseX / this._partWidth);
                     if (this._draggingStartOfSelection) {
-                        sequence.append(new ChangePatternSelection(this._doc, Math.max(0, Math.min(this._doc.song.beatsPerBar * Config.partsPerBeat, currentPart)), this._doc.selection.patternSelectionEnd));
+                        sequence.append(new ChangePatternSelection(this._doc, Math.max(0, Math.min(this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset) * Config.partsPerBeat, currentPart)), this._doc.selection.patternSelectionEnd));
                         this._updateSelection();
                     }
                     else if (this._draggingEndOfSelection) {
-                        sequence.append(new ChangePatternSelection(this._doc, this._doc.selection.patternSelectionStart, Math.max(0, Math.min(this._doc.song.beatsPerBar * Config.partsPerBeat, currentPart))));
+                        sequence.append(new ChangePatternSelection(this._doc, this._doc.selection.patternSelectionStart, Math.max(0, Math.min(this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset) * Config.partsPerBeat, currentPart))));
                         this._updateSelection();
                     }
                     else if (this._draggingSelectionContents) {
@@ -17833,7 +17834,7 @@ Config.chipWaves = toNameMap([
                     }
                     else if (this._shiftHeld) {
                         if (this._mouseDragging) {
-                            let start = Math.max(0, Math.min((this._doc.song.beatsPerBar - 1) * Config.partsPerBeat, Math.floor(this._cursor.exactPart / Config.partsPerBeat) * Config.partsPerBeat));
+                            let start = Math.max(0, Math.min((this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset) - 1) * Config.partsPerBeat, Math.floor(this._cursor.exactPart / Config.partsPerBeat) * Config.partsPerBeat));
                             let end = start + Config.partsPerBeat;
                             if (this._cursor.curNote != null) {
                                 start = Math.max(start, this._cursor.curNote.start);
@@ -17852,7 +17853,7 @@ Config.chipWaves = toNameMap([
                                         }
                                     }
                                 }
-                                for (let beat = 0; beat <= this._doc.song.beatsPerBar; beat++) {
+                                for (let beat = 0; beat <= this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset); beat++) {
                                     const part = beat * Config.partsPerBeat;
                                     if (start <= part && part <= currentPart) {
                                         start = part;
@@ -17860,7 +17861,7 @@ Config.chipWaves = toNameMap([
                                 }
                             }
                             if (currentPart > end) {
-                                end = Config.partsPerBeat * this._doc.song.beatsPerBar;
+                                end = Config.partsPerBeat * this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset);
                                 const pattern = this._doc.getCurrentPattern(this._barOffset);
                                 if (pattern != null) {
                                     for (let i = 0; i < pattern.notes.length; i++) {
@@ -17874,7 +17875,7 @@ Config.chipWaves = toNameMap([
                                         }
                                     }
                                 }
-                                for (let beat = 0; beat <= this._doc.song.beatsPerBar; beat++) {
+                                for (let beat = 0; beat <= this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset); beat++) {
                                     const part = beat * Config.partsPerBeat;
                                     if (currentPart < part && part < end) {
                                         end = part;
@@ -17899,7 +17900,7 @@ Config.chipWaves = toNameMap([
                                 directLength = currentPart - this._cursor.start + minDivision;
                             }
                             let defaultLength = minDivision;
-                            for (let i = minDivision; i <= this._doc.song.beatsPerBar * Config.partsPerBeat; i += minDivision) {
+                            for (let i = minDivision; i <= this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset) * Config.partsPerBeat; i += minDivision) {
                                 if (minDivision === 1) {
                                     if (i < 5) ;
                                     else if (i <= Config.partsPerBeat / 2.0) {
@@ -17953,8 +17954,8 @@ Config.chipWaves = toNameMap([
                             const continuesLastPattern = (start < 0);
                             if (start < 0)
                                 start = 0;
-                            if (end > this._doc.song.beatsPerBar * Config.partsPerBeat)
-                                end = this._doc.song.beatsPerBar * Config.partsPerBeat;
+                            if (end > this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset) * Config.partsPerBeat)
+                                end = this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset) * Config.partsPerBeat;
                             if (start < end) {
                                 sequence.append(new ChangeEnsurePatternExists(this._doc, this._doc.channel, this._doc.bar));
                                 const pattern = this._doc.getCurrentPattern(this._barOffset);
@@ -17985,8 +17986,8 @@ Config.chipWaves = toNameMap([
                             const continuesLastPattern = (shiftedTime < 0.0);
                             if (shiftedTime < 0)
                                 shiftedTime = 0;
-                            if (shiftedTime > this._doc.song.beatsPerBar * Config.partsPerBeat)
-                                shiftedTime = this._doc.song.beatsPerBar * Config.partsPerBeat;
+                            if (shiftedTime > this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset) * Config.partsPerBeat)
+                                shiftedTime = this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset) * Config.partsPerBeat;
                             if (this._pattern === null)
                                 throw new Error();
                             if (shiftedTime <= this._cursor.curNote.start && this._cursor.nearPinIndex === this._cursor.curNote.pins.length - 1 ||
@@ -18053,8 +18054,8 @@ Config.chipWaves = toNameMap([
                             }
                             if (bendEnd < 0)
                                 bendEnd = 0;
-                            if (bendEnd > this._doc.song.beatsPerBar * Config.partsPerBeat)
-                                bendEnd = this._doc.song.beatsPerBar * Config.partsPerBeat;
+                            if (bendEnd > this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset) * Config.partsPerBeat)
+                                bendEnd = this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset) * Config.partsPerBeat;
                             if (bendEnd > this._cursor.curNote.end) {
                                 sequence.append(new ChangeNoteTruncate(this._doc, this._pattern, this._cursor.curNote.start, bendEnd, this._cursor.curNote));
                             }
@@ -18196,7 +18197,7 @@ Config.chipWaves = toNameMap([
             return this._doc.song.getChannelIsNoise(this._doc.channel) ? Config.drumCount - 1 : Config.maxPitch;
         }
         _getMaxDivision() {
-            const rhythmStepsPerBeat = Config.rhythms[this._doc.song.rhythm].stepsPerBeat;
+            const rhythmStepsPerBeat = Config.rhythms[this._doc.song.getEffectiveRhythm(this._doc.bar + this._barOffset)].stepsPerBeat;
             if (rhythmStepsPerBeat % 4 === 0) {
                 return Config.partsPerBeat / 2;
             }
@@ -18209,7 +18210,7 @@ Config.chipWaves = toNameMap([
             return Config.partsPerBeat;
         }
         _getMinDivision() {
-            return Config.partsPerBeat / Config.rhythms[this._doc.song.rhythm].stepsPerBeat;
+            return Config.partsPerBeat / Config.rhythms[this._doc.song.getEffectiveRhythm(this._doc.bar + this._barOffset)].stepsPerBeat;
         }
         _snapToMinDivision(input) {
             const minDivision = this._getMinDivision();
@@ -18219,7 +18220,7 @@ Config.chipWaves = toNameMap([
             this._cursor = new PatternCursor();
             if (this._mouseX < 0 || this._mouseX > this._editorWidth || this._mouseY < 0 || this._mouseY > this._editorHeight || this._pitchHeight <= 0)
                 return;
-            const partsPerPattern = this._doc.song.beatsPerBar * Config.partsPerBeat;
+            const partsPerPattern = this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset) * Config.partsPerBeat;
             const minDivision = this._getMinDivision();
             this._cursor.exactPart = this._mouseX / this._partWidth;
             this._cursor.part =
@@ -18562,14 +18563,15 @@ Config.chipWaves = toNameMap([
             this._pattern = nextPattern;
             this._editorWidth = this.container.clientWidth;
             this._editorHeight = this.container.clientHeight;
-            this._partWidth = this._editorWidth / (this._doc.song.beatsPerBar * Config.partsPerBeat);
+            this._partWidth = this._editorWidth / (this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset) * Config.partsPerBeat);
             this._pitchCount = this._doc.song.getChannelIsNoise(this._doc.channel) ? Config.drumCount : this._doc.getVisiblePitchCount();
             this._pitchHeight = this._editorHeight / this._pitchCount;
             this._octaveOffset = this._doc.getBaseVisibleOctave(this._doc.channel) * Config.pitchesPerOctave;
-            if (this._renderedRhythm != this._doc.song.rhythm ||
+            const _effectiveRhythm = this._doc.song.getEffectiveRhythm(this._doc.bar + this._barOffset);
+            if (this._renderedRhythm != _effectiveRhythm ||
                 this._renderedPitchChannelCount != this._doc.song.pitchChannelCount ||
                 this._renderedNoiseChannelCount != this._doc.song.noiseChannelCount) {
-                this._renderedRhythm = this._doc.song.rhythm;
+                this._renderedRhythm = _effectiveRhythm;
                 this._renderedPitchChannelCount = this._doc.song.pitchChannelCount;
                 this._renderedNoiseChannelCount = this._doc.song.noiseChannelCount;
                 this.resetCopiedPins();
@@ -18584,7 +18586,7 @@ Config.chipWaves = toNameMap([
                 this._selectionRect.setAttribute("y", "0");
                 this._selectionRect.setAttribute("height", "" + this._editorHeight);
             }
-            const beatWidth = this._editorWidth / this._doc.song.beatsPerBar;
+            const beatWidth = this._editorWidth / this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset);
             if (this._renderedBeatWidth != beatWidth || this._renderedPitchHeight != this._pitchHeight) {
                 this._renderedBeatWidth = beatWidth;
                 this._renderedPitchHeight = this._pitchHeight;
@@ -19922,8 +19924,8 @@ Config.chipWaves = toNameMap([
             this._barWidth = 32;
             this._renderedBarCount = 0;
             this._renderedBarWidth = -1;
-            this._svg = SVG.svg({ style: "position: absolute; top: 0; overflow: visible;" });
-            this.container = HTML.div({ class: "timeSignatureEditor", style: "touch-action: pan-y; position: relative;" }, this._svg);
+            this._svg = SVG.svg({ style: "display: block;" });
+            this.container = HTML.div({ class: "timeSignatureEditor", style: "touch-action: pan-y;" }, this._svg);
             this._onMouseDown = (event) => {
                 if (event.button !== 0) return;
                 const boundingRect = this._svg.getBoundingClientRect();
