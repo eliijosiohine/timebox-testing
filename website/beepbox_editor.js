@@ -5457,6 +5457,10 @@ Config.chipWaves = toNameMap([
             // Per-bar time signature overrides. Sparse array: index = bar number.
             // Each entry is {beats: number, rhythm: number} or left undefined (= use global).
             this.barTimeSignatures = [];
+            // Per-pattern time signature lock. Sparse array: index = patternIndex-1.
+            // Each entry is {beats: number, rhythm: number} — the sig the pattern was created for.
+            // Undefined means the pattern has never had notes placed in it under a specific sig.
+            this.patternTimeSignatures = [];
             if (andResetChannels) {
                 this.pitchChannelCount = 3;
                 this.noiseChannelCount = 1;
@@ -13582,84 +13586,143 @@ Config.chipWaves = toNameMap([
             doc.notifier.changed();
         }
     }
+
+    // Returns the effective {beats, rhythm} for a given bar, clamped safely.
+    function getBarSig(song, bar) {
+        const o = song.barTimeSignatures[bar];
+        if (o != null) return { beats: o.beats, rhythm: o.rhythm };
+        return { beats: song.beatsPerBar, rhythm: song.rhythm };
+    }
+
+    // Returns true if two sig objects are equivalent (same beats and rhythm).
+    function sigEquals(a, b) {
+        if (a == null && b == null) return true;
+        if (a == null || b == null) return false;
+        return a.beats === b.beats && a.rhythm === b.rhythm;
+    }
+
+    // Allocates a fresh pattern slot for the given channel (expanding patternsPerChannel
+    // if needed), copies notes from srcPattern stretched from oldBeats -> newBeats,
+    // copies instruments, stamps patternTimeSignatures, and returns the new 1-based index.
+    // Returns 0 if no slot could be allocated.
+    function allocateStretchedPatternClone(song, channelIndex, srcPatternIndex, oldBeats, newBeats, newRhythm) {
+        const channel = song.channels[channelIndex];
+        const srcPattern = channel.patterns[srcPatternIndex - 1];
+
+        // Find first empty-and-unused slot, or expand.
+        let newIndex = 0;
+        for (let p = 1; p <= song.patternsPerChannel; p++) {
+            let usedAnywhere = false;
+            for (let b = 0; b < song.barCount; b++) {
+                if (channel.bars[b] === p) { usedAnywhere = true; break; }
+            }
+            if (!usedAnywhere) {
+                newIndex = p;
+                break;
+            }
+        }
+        if (newIndex === 0) {
+            // Need to expand patternsPerChannel, but only up to barCount.
+            if (song.patternsPerChannel >= song.barCount) return 0; // no room
+            const newCount = song.patternsPerChannel + 1;
+            for (let i = 0; i < song.getChannelCount(); i++) {
+                while (song.channels[i].patterns.length < newCount) {
+                    song.channels[i].patterns.push(new Pattern());
+                }
+            }
+            song.patternsPerChannel = newCount;
+            newIndex = newCount;
+        }
+
+        const destPattern = channel.patterns[newIndex - 1];
+        destPattern.notes = [];
+        destPattern.instruments.length = 0;
+        destPattern.instruments.push(...srcPattern.instruments);
+
+        // Stretch notes: scale note times by newBeats/oldBeats.
+        if (oldBeats > 0 && newBeats > 0 && oldBeats !== newBeats) {
+            const scale = newBeats / oldBeats;
+            const newPartsPerBar = newBeats * Config.partsPerBeat;
+            for (const srcNote of srcPattern.notes) {
+                const newStart = Math.round(srcNote.start * scale);
+                const newEnd   = Math.min(newPartsPerBar, Math.round(srcNote.end * scale));
+                if (newStart >= newEnd) continue;
+                const newNote = srcNote.clone();
+                newNote.start = newStart;
+                newNote.end   = newEnd;
+                for (const pin of newNote.pins) {
+                    pin.time = Math.round(pin.time * scale);
+                }
+                destPattern.notes.push(newNote);
+            }
+        } else {
+            // Same beats or degenerate: plain copy, clamped to new bar length.
+            const newPartsPerBar = newBeats * Config.partsPerBeat;
+            for (const srcNote of srcPattern.notes) {
+                if (srcNote.start >= newPartsPerBar) continue;
+                const newNote = srcNote.clone();
+                if (newNote.end > newPartsPerBar) newNote.end = newPartsPerBar;
+                destPattern.notes.push(newNote);
+            }
+        }
+
+        // Stamp the time-sig lock for this new pattern (caller may overwrite this).
+        song.patternTimeSignatures[newIndex - 1] = { beats: newBeats, rhythm: (newRhythm !== undefined ? newRhythm : song.rhythm) };
+
+        return newIndex;
+    }
+
     class ChangePatternNumbers extends Change {
         constructor(doc, value, startBar, startChannel, width, height) {
             super();
             if (value > doc.song.patternsPerChannel)
                 throw new Error("invalid pattern");
+            const song = doc.song;
             for (let bar = startBar; bar < startBar + width; bar++) {
+                const barSig = getBarSig(song, bar);
                 for (let channelIndex = startChannel; channelIndex < startChannel + height; channelIndex++) {
-                    if (doc.song.channels[channelIndex].bars[bar] != value) {
-                        doc.song.channels[channelIndex].bars[bar] = value;
+                    let assignValue = value;
+                    // If assigning a real pattern (not erasing with 0), enforce time-sig lock.
+                    if (assignValue !== 0) {
+                        const patSig = song.patternTimeSignatures[assignValue - 1];
+                        if (patSig != null && !sigEquals(patSig, barSig)) {
+                            // Pattern is locked to a different sig. Look for an existing compatible clone.
+                            let compatibleIndex = 0;
+                            for (let p = 1; p <= song.patternsPerChannel; p++) {
+                                const ps = song.patternTimeSignatures[p - 1];
+                                if (p === assignValue) continue;
+                                if (ps != null && sigEquals(ps, barSig)) {
+                                    // Check it has the same notes as the source (i.e. is already a clone).
+                                    // For simplicity, just use the first compatible empty-or-matching slot.
+                                    compatibleIndex = p;
+                                    break;
+                                }
+                            }
+                            if (compatibleIndex === 0) {
+                                // Clone-and-stretch into a new slot.
+                                const cloned = allocateStretchedPatternClone(
+                                    song, channelIndex, assignValue,
+                                    patSig.beats, barSig.beats, barSig.rhythm
+                                );
+                                if (cloned !== 0) {
+                                    assignValue = cloned;
+                                }
+                                // If cloned === 0, no room — fall through and assign as-is.
+                            } else {
+                                assignValue = compatibleIndex;
+                            }
+                        }
+                        // Stamp the sig lock on first use (pattern previously unlocked).
+                        if (song.patternTimeSignatures[assignValue - 1] == null) {
+                            song.patternTimeSignatures[assignValue - 1] = { beats: barSig.beats, rhythm: barSig.rhythm };
+                        }
+                    }
+                    if (song.channels[channelIndex].bars[bar] !== assignValue) {
+                        song.channels[channelIndex].bars[bar] = assignValue;
                         this._didSomething();
                     }
                 }
             }
-            doc.notifier.changed();
-        }
-    }
-    // When a pattern authored in one time signature is placed on a bar with a
-    // different time signature, this change clones the pattern into a new slot
-    // and stretches all note timings proportionally (no tempo change).
-    class ChangeCloneAndStretchForTimeSig extends Change {
-        constructor(doc, srcPatternIndex, bar, channelIndex, oldBeats, newBeats) {
-            super();
-            const song = doc.song;
-            const srcPattern = song.channels[channelIndex].patterns[srcPatternIndex - 1];
-            // Find the next completely-unused pattern slot (or expand patternsPerChannel).
-            let newSlotIndex = null;
-            for (let pi = 1; pi <= song.patternsPerChannel; pi++) {
-                let used = false;
-                for (let bi = 0; bi < song.barCount; bi++) {
-                    if (song.channels[channelIndex].bars[bi] === pi) { used = true; break; }
-                }
-                if (!used && song.channels[channelIndex].patterns[pi - 1].notes.length === 0) {
-                    newSlotIndex = pi;
-                    break;
-                }
-            }
-            if (newSlotIndex === null) {
-                // Need a brand-new slot — expand patternsPerChannel on every channel.
-                const newCount = song.patternsPerChannel + 1;
-                for (let i = 0; i < song.getChannelCount(); i++) {
-                    while (song.channels[i].patterns.length < newCount) {
-                        song.channels[i].patterns.push(new Pattern());
-                    }
-                }
-                song.patternsPerChannel = newCount;
-                newSlotIndex = newCount;
-            }
-            // Clone notes with stretched timing (scale note.start, note.end, pin times).
-            const ratio = newBeats / oldBeats;
-            const newPattern = song.channels[channelIndex].patterns[newSlotIndex - 1];
-            newPattern.instruments = srcPattern.instruments.concat();
-            newPattern.notes = [];
-            for (const srcNote of srcPattern.notes) {
-                const newNote = new Note(-1, 0, 1, Config.noteSizeMax);
-                newNote.pitches = srcNote.pitches.concat();
-                newNote.continuesLastPattern = srcNote.continuesLastPattern;
-                newNote.start = Math.round(srcNote.start * ratio);
-                newNote.end   = Math.round(srcNote.end   * ratio);
-                if (newNote.start >= newNote.end) continue; // degenerate after rounding
-                newNote.pins = [];
-                for (const pin of srcNote.pins) {
-                    const scaledTime = Math.round(pin.time * ratio);
-                    newNote.pins.push(makeNotePin(pin.interval, scaledTime, pin.size));
-                }
-                // Ensure first pin is at t=0 and last pin matches note duration.
-                if (newNote.pins.length > 0) newNote.pins[0] = makeNotePin(newNote.pins[0].interval, 0, newNote.pins[0].size);
-                const dur = newNote.end - newNote.start;
-                if (newNote.pins.length > 0) newNote.pins[newNote.pins.length - 1] = makeNotePin(newNote.pins[newNote.pins.length - 1].interval, dur, newNote.pins[newNote.pins.length - 1].size);
-                // Clamp to new bar boundary.
-                const maxPart = newBeats * Config.partsPerBeat;
-                if (newNote.start < maxPart && newNote.end > 0) {
-                    newNote.end = Math.min(newNote.end, maxPart);
-                    newPattern.notes.push(newNote);
-                }
-            }
-            // Assign the new pattern to this bar.
-            song.channels[channelIndex].bars[bar] = newSlotIndex;
-            this._didSomething();
             doc.notifier.changed();
         }
     }
@@ -14339,14 +14402,82 @@ Config.chipWaves = toNameMap([
         constructor(doc, barIndex, beats, rhythm) {
             super();
             // beats=null means "clear override and use global default"
-            const old = doc.song.barTimeSignatures[barIndex];
+            const song = doc.song;
+            const oldSig = getBarSig(song, barIndex);
             const newVal = (beats == null) ? undefined : { beats, rhythm };
-            const oldBeats = old != null ? old.beats : null;
-            const oldRhythm = old != null ? old.rhythm : null;
-            const newBeats = newVal != null ? newVal.beats : null;
-            const newRhythm = newVal != null ? newVal.rhythm : null;
-            if (oldBeats !== newBeats || oldRhythm !== newRhythm) {
-                doc.song.barTimeSignatures[barIndex] = newVal;
+            song.barTimeSignatures[barIndex] = newVal;
+            const newSig = getBarSig(song, barIndex);
+
+            if (!sigEquals(oldSig, newSig)) {
+                // For every channel, check if the bar's current pattern is locked to the
+                // old sig. If so, clone-and-stretch it to fit the new sig, then point
+                // this bar at the clone. Bars still using the old sig keep the original.
+                for (let channelIndex = 0; channelIndex < song.getChannelCount(); channelIndex++) {
+                    const currentPatternIndex = song.channels[channelIndex].bars[barIndex];
+                    if (currentPatternIndex === 0) continue;
+
+                    const patSig = song.patternTimeSignatures[currentPatternIndex - 1];
+
+                    // Is this pattern locked to the old sig (or unlocked / compatible)?
+                    const patternLockedToOld = patSig != null && sigEquals(patSig, oldSig);
+                    const patternAlreadyCompatible = patSig == null || sigEquals(patSig, newSig);
+
+                    if (patternAlreadyCompatible) {
+                        // Update lock to new sig if unlocked.
+                        if (patSig == null) {
+                            song.patternTimeSignatures[currentPatternIndex - 1] = { beats: newSig.beats, rhythm: newSig.rhythm };
+                        }
+                        continue;
+                    }
+
+                    // Pattern is incompatible. Check if it's shared with any bar still
+                    // on the OLD sig — if not, we can retag it in-place (just re-stretch).
+                    // If it IS shared, we must clone it so the other bars are unaffected.
+                    let sharedWithOldSigBar = false;
+                    for (let b = 0; b < song.barCount; b++) {
+                        if (b === barIndex) continue;
+                        if (song.channels[channelIndex].bars[b] === currentPatternIndex) {
+                            const otherSig = getBarSig(song, b);
+                            if (sigEquals(otherSig, oldSig)) {
+                                sharedWithOldSigBar = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (sharedWithOldSigBar) {
+                        // Clone into a new slot, stretch to new sig, point this bar at clone.
+                        const cloned = allocateStretchedPatternClone(
+                            song, channelIndex, currentPatternIndex,
+                            oldSig.beats, newSig.beats, newSig.rhythm
+                        );
+                        if (cloned !== 0) {
+                            song.channels[channelIndex].bars[barIndex] = cloned;
+                        }
+                    } else {
+                        // Pattern is exclusively used by this bar — stretch notes in-place.
+                        const pattern = song.channels[channelIndex].patterns[currentPatternIndex - 1];
+                        if (oldSig.beats > 0 && newSig.beats > 0 && oldSig.beats !== newSig.beats) {
+                            const scale = newSig.beats / oldSig.beats;
+                            const newPartsPerBar = newSig.beats * Config.partsPerBeat;
+                            const stretchedNotes = [];
+                            for (const note of pattern.notes) {
+                                const newStart = Math.round(note.start * scale);
+                                const newEnd   = Math.min(newPartsPerBar, Math.round(note.end * scale));
+                                if (newStart >= newEnd) continue;
+                                const newNote = note.clone();
+                                newNote.start = newStart;
+                                newNote.end   = newEnd;
+                                for (const pin of newNote.pins) {
+                                    pin.time = Math.round(pin.time * scale);
+                                }
+                                stretchedNotes.push(newNote);
+                            }
+                            pattern.notes = stretchedNotes;
+                        }
+                        song.patternTimeSignatures[currentPatternIndex - 1] = { beats: newSig.beats, rhythm: newSig.rhythm };
+                    }
+                }
                 doc.notifier.changed();
                 this._didSomething();
             }
@@ -14485,66 +14616,12 @@ Config.chipWaves = toNameMap([
                     }
                     channelPatterns.length = newValue;
                 }
+                // Trim patternTimeSignatures to match new slot count.
+                doc.song.patternTimeSignatures.length = newValue;
                 doc.song.patternsPerChannel = newValue;
                 doc.notifier.changed();
                 this._didSomething();
             }
-        }
-    }
-    // If the current bar shares a pattern with bars that have a DIFFERENT time
-    // signature, fork it into a new private slot (copying existing notes) so
-    // that editing notes here won't corrupt the other bars.
-    class ChangeForkPatternForTimeSig extends Change {
-        constructor(doc, channelIndex, bar) {
-            super();
-            const song = doc.song;
-            const currentPatternIndex = song.channels[channelIndex].bars[bar];
-            // Nothing assigned here yet — nothing to fork.
-            if (currentPatternIndex === 0) return;
-            const thisBeats = song.getEffectiveBeatsPerBar(bar);
-            // Check whether any OTHER bar uses this same pattern index with a different sig.
-            let mismatchFound = false;
-            for (let bi = 0; bi < song.barCount; bi++) {
-                if (bi === bar) continue;
-                if (song.channels[channelIndex].bars[bi] === currentPatternIndex) {
-                    if (song.getEffectiveBeatsPerBar(bi) !== thisBeats) {
-                        mismatchFound = true;
-                        break;
-                    }
-                }
-            }
-            if (!mismatchFound) return;
-            // Find a new empty unused slot, or expand patternsPerChannel.
-            let newSlotIndex = null;
-            for (let pi = 1; pi <= song.patternsPerChannel; pi++) {
-                let used = false;
-                for (let bi = 0; bi < song.barCount; bi++) {
-                    if (song.channels[channelIndex].bars[bi] === pi) { used = true; break; }
-                }
-                if (!used && song.channels[channelIndex].patterns[pi - 1].notes.length === 0) {
-                    newSlotIndex = pi;
-                    break;
-                }
-            }
-            if (newSlotIndex === null) {
-                const newCount = song.patternsPerChannel + 1;
-                for (let i = 0; i < song.getChannelCount(); i++) {
-                    while (song.channels[i].patterns.length < newCount) {
-                        song.channels[i].patterns.push(new Pattern());
-                    }
-                }
-                song.patternsPerChannel = newCount;
-                newSlotIndex = newCount;
-            }
-            // Deep-copy notes from the shared pattern into the new slot.
-            const srcPattern = song.channels[channelIndex].patterns[currentPatternIndex - 1];
-            const newPattern = song.channels[channelIndex].patterns[newSlotIndex - 1];
-            newPattern.instruments = srcPattern.instruments.concat();
-            newPattern.notes = srcPattern.cloneNotes();
-            // Re-point this bar to the forked slot.
-            song.channels[channelIndex].bars[bar] = newSlotIndex;
-            this._didSomething();
-            doc.notifier.changed();
         }
     }
     class ChangeEnsurePatternExists extends UndoableChange {
@@ -14614,6 +14691,11 @@ Config.chipWaves = toNameMap([
             pattern.instruments.length = 0;
             pattern.instruments.push(...this._newPatternInstruments);
             song.channels[this._channelIndex].bars[this._bar] = this._patternIndex;
+            // Stamp the time-sig lock so this pattern is tied to the bar it was created in.
+            if (song.patternTimeSignatures[this._patternIndex - 1] == null) {
+                const sig = getBarSig(song, this._bar);
+                song.patternTimeSignatures[this._patternIndex - 1] = { beats: sig.beats, rhythm: sig.rhythm };
+            }
             this._doc.notifier.changed();
         }
         _doBackwards() {
@@ -14625,6 +14707,8 @@ Config.chipWaves = toNameMap([
                 pattern.instruments.length = 0;
                 pattern.instruments.push(...this._oldPatternInstruments);
             }
+            // Clear sig lock on undo so the slot is available again if needed.
+            song.patternTimeSignatures[this._patternIndex - 1] = undefined;
             song.channels[this._channelIndex].bars[this._bar] = 0;
             for (let i = 0; i < song.getChannelCount(); i++) {
                 song.channels[i].patterns.length = this._oldPatternCount;
@@ -16458,40 +16542,6 @@ Config.chipWaves = toNameMap([
             this.selectionUpdated();
         }
         setPattern(pattern) {
-            // Guard: if the user is placing a non-empty pattern onto a bar whose time
-            // signature differs from every bar that currently uses that pattern, we must
-            // clone & stretch rather than share the pattern directly.
-            if (pattern !== 0) {
-                const song = this._doc.song;
-                const bar = this.boxSelectionBar;
-                const channelIndex = this.boxSelectionChannel;
-                const srcPattern = song.channels[channelIndex].patterns[pattern - 1];
-                if (srcPattern != null && srcPattern.notes.length > 0) {
-                    const destBeats = song.getEffectiveBeatsPerBar(bar);
-                    // Find the beats-per-bar used by any bar that already references
-                    // this pattern number on this channel.
-                    let srcBeats = null;
-                    for (let bi = 0; bi < song.barCount; bi++) {
-                        if (song.channels[channelIndex].bars[bi] === pattern) {
-                            const bitsAtBar = song.getEffectiveBeatsPerBar(bi);
-                            if (srcBeats === null) {
-                                srcBeats = bitsAtBar;
-                            } else if (srcBeats !== bitsAtBar) {
-                                // The pattern is already used across mismatched bars —
-                                // use the first one we found as the authoritative sig.
-                                break;
-                            }
-                        }
-                    }
-                    if (srcBeats !== null && srcBeats !== destBeats) {
-                        // Time signature mismatch — clone and stretch into a new slot.
-                        this._doc.record(new ChangeCloneAndStretchForTimeSig(
-                            this._doc, pattern, bar, channelIndex,
-                            srcBeats, destBeats));
-                        return;
-                    }
-                }
-            }
             this._doc.record(new ChangePatternNumbers(this._doc, pattern, this.boxSelectionBar, this.boxSelectionChannel, this.boxSelectionWidth, this.boxSelectionHeight));
         }
         nextDigit(digit, forInstrument) {
@@ -17963,8 +18013,6 @@ Config.chipWaves = toNameMap([
                     const sequence = new ChangeSequence();
                     this._dragChange = sequence;
                     this._doc.setProspectiveChange(this._dragChange);
-                    // Before any note edit, fork the pattern if it's shared with bars of a different time sig.
-                    sequence.append(new ChangeForkPatternForTimeSig(this._doc, this._doc.channel, this._doc.bar));
                     const minDivision = this._getMinDivision();
                     const currentPart = this._snapToMinDivision(this._mouseX / this._partWidth);
                     if (this._draggingStartOfSelection) {
@@ -17982,7 +18030,6 @@ Config.chipWaves = toNameMap([
                             const sequence = new ChangeSequence();
                             this._dragChange = sequence;
                             this._doc.setProspectiveChange(this._dragChange);
-                            sequence.append(new ChangeForkPatternForTimeSig(this._doc, this._doc.channel, this._doc.bar));
                             const notesInScale = Config.scales[this._doc.song.scale].flags.filter(x => x).length;
                             const pitchRatio = this._doc.song.getChannelIsNoise(this._doc.channel) ? 1 : 12 / notesInScale;
                             const draggedParts = Math.round((this._mouseX - this._mouseXStart) / (this._partWidth * minDivision)) * minDivision;
@@ -18115,7 +18162,6 @@ Config.chipWaves = toNameMap([
                             if (end > this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset) * Config.partsPerBeat)
                                 end = this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset) * Config.partsPerBeat;
                             if (start < end) {
-                                sequence.append(new ChangeForkPatternForTimeSig(this._doc, this._doc.channel, this._doc.bar));
                                 sequence.append(new ChangeEnsurePatternExists(this._doc, this._doc.channel, this._doc.bar));
                                 const pattern = this._doc.getCurrentPattern(this._barOffset);
                                 if (pattern === null)
@@ -18626,7 +18672,6 @@ Config.chipWaves = toNameMap([
             for (const oldPin of this._cursor.pins) {
                 note.pins.push(makeNotePin(0, oldPin.time, oldPin.size));
             }
-            sequence.append(new ChangeForkPatternForTimeSig(this._doc, this._doc.channel, this._doc.bar));
             sequence.append(new ChangeEnsurePatternExists(this._doc, this._doc.channel, this._doc.bar));
             const pattern = this._doc.getCurrentPattern(this._barOffset);
             if (pattern === null)
@@ -19453,14 +19498,24 @@ Config.chipWaves = toNameMap([
         setWidth(width) {
             this.container.style.width = (width - 2) + "px";
         }
-        setIndex(index, selected, color) {
+        setIndex(index, selected, color, incompatible) {
             if (this._renderedIndex != index) {
                 this._renderedIndex = index;
                 this._text.data = String(index);
             }
             this._label.style.color = selected ? ColorConfig.invertedText : color;
             this._label.classList.toggle("smaller-digits", index >= 100);
-            this.container.style.background = selected ? color : (index === 0) ? "none" : ColorConfig.uiWidgetBackground;
+            if (selected) {
+                this.container.style.background = color;
+            } else if (index === 0) {
+                this.container.style.background = "none";
+            } else if (incompatible) {
+                // Striped warning background: diagonal red/dark stripes.
+                this.container.style.background =
+                    `repeating-linear-gradient(45deg, #550000 0px, #550000 4px, ${ColorConfig.uiWidgetBackground} 4px, ${ColorConfig.uiWidgetBackground} 8px)`;
+            } else {
+                this.container.style.background = ColorConfig.uiWidgetBackground;
+            }
         }
     }
     class ChannelRow {
@@ -19498,7 +19553,17 @@ Config.chipWaves = toNameMap([
                 const box = this._boxes[i];
                 if (i < this._doc.song.barCount) {
                     const colors = ColorConfig.getChannelColor(this._doc.song, this.index);
-                    box.setIndex(this._doc.song.channels[this.index].bars[i], selected, dim && !selected ? colors.secondaryChannel : colors.primaryChannel);
+                    const patternIndex = this._doc.song.channels[this.index].bars[i];
+                    // Detect sig mismatch: pattern locked to a different sig than this bar.
+                    let incompatible = false;
+                    if (patternIndex !== 0) {
+                        const patSig = this._doc.song.patternTimeSignatures[patternIndex - 1];
+                        if (patSig != null) {
+                            const barSig = getBarSig(this._doc.song, i);
+                            incompatible = !sigEquals(patSig, barSig);
+                        }
+                    }
+                    box.setIndex(patternIndex, selected, dim && !selected ? colors.secondaryChannel : colors.primaryChannel, incompatible);
                     box.container.style.visibility = "visible";
                 }
                 else {
