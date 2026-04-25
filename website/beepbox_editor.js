@@ -14491,6 +14491,62 @@ Config.chipWaves = toNameMap([
             }
         }
     }
+    // If the current bar shares a pattern with bars that have a DIFFERENT time
+    // signature, fork it into a new private slot (copying existing notes) so
+    // that editing notes here won't corrupt the other bars.
+    class ChangeForkPatternForTimeSig extends Change {
+        constructor(doc, channelIndex, bar) {
+            super();
+            const song = doc.song;
+            const currentPatternIndex = song.channels[channelIndex].bars[bar];
+            // Nothing assigned here yet — nothing to fork.
+            if (currentPatternIndex === 0) return;
+            const thisBeats = song.getEffectiveBeatsPerBar(bar);
+            // Check whether any OTHER bar uses this same pattern index with a different sig.
+            let mismatchFound = false;
+            for (let bi = 0; bi < song.barCount; bi++) {
+                if (bi === bar) continue;
+                if (song.channels[channelIndex].bars[bi] === currentPatternIndex) {
+                    if (song.getEffectiveBeatsPerBar(bi) !== thisBeats) {
+                        mismatchFound = true;
+                        break;
+                    }
+                }
+            }
+            if (!mismatchFound) return;
+            // Find a new empty unused slot, or expand patternsPerChannel.
+            let newSlotIndex = null;
+            for (let pi = 1; pi <= song.patternsPerChannel; pi++) {
+                let used = false;
+                for (let bi = 0; bi < song.barCount; bi++) {
+                    if (song.channels[channelIndex].bars[bi] === pi) { used = true; break; }
+                }
+                if (!used && song.channels[channelIndex].patterns[pi - 1].notes.length === 0) {
+                    newSlotIndex = pi;
+                    break;
+                }
+            }
+            if (newSlotIndex === null) {
+                const newCount = song.patternsPerChannel + 1;
+                for (let i = 0; i < song.getChannelCount(); i++) {
+                    while (song.channels[i].patterns.length < newCount) {
+                        song.channels[i].patterns.push(new Pattern());
+                    }
+                }
+                song.patternsPerChannel = newCount;
+                newSlotIndex = newCount;
+            }
+            // Deep-copy notes from the shared pattern into the new slot.
+            const srcPattern = song.channels[channelIndex].patterns[currentPatternIndex - 1];
+            const newPattern = song.channels[channelIndex].patterns[newSlotIndex - 1];
+            newPattern.instruments = srcPattern.instruments.concat();
+            newPattern.notes = srcPattern.cloneNotes();
+            // Re-point this bar to the forked slot.
+            song.channels[channelIndex].bars[bar] = newSlotIndex;
+            this._didSomething();
+            doc.notifier.changed();
+        }
+    }
     class ChangeEnsurePatternExists extends UndoableChange {
         constructor(doc, channelIndex, bar) {
             super(false);
@@ -17907,6 +17963,8 @@ Config.chipWaves = toNameMap([
                     const sequence = new ChangeSequence();
                     this._dragChange = sequence;
                     this._doc.setProspectiveChange(this._dragChange);
+                    // Before any note edit, fork the pattern if it's shared with bars of a different time sig.
+                    sequence.append(new ChangeForkPatternForTimeSig(this._doc, this._doc.channel, this._doc.bar));
                     const minDivision = this._getMinDivision();
                     const currentPart = this._snapToMinDivision(this._mouseX / this._partWidth);
                     if (this._draggingStartOfSelection) {
@@ -17924,6 +17982,7 @@ Config.chipWaves = toNameMap([
                             const sequence = new ChangeSequence();
                             this._dragChange = sequence;
                             this._doc.setProspectiveChange(this._dragChange);
+                            sequence.append(new ChangeForkPatternForTimeSig(this._doc, this._doc.channel, this._doc.bar));
                             const notesInScale = Config.scales[this._doc.song.scale].flags.filter(x => x).length;
                             const pitchRatio = this._doc.song.getChannelIsNoise(this._doc.channel) ? 1 : 12 / notesInScale;
                             const draggedParts = Math.round((this._mouseX - this._mouseXStart) / (this._partWidth * minDivision)) * minDivision;
@@ -18056,6 +18115,7 @@ Config.chipWaves = toNameMap([
                             if (end > this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset) * Config.partsPerBeat)
                                 end = this._doc.song.getEffectiveBeatsPerBar(this._doc.bar + this._barOffset) * Config.partsPerBeat;
                             if (start < end) {
+                                sequence.append(new ChangeForkPatternForTimeSig(this._doc, this._doc.channel, this._doc.bar));
                                 sequence.append(new ChangeEnsurePatternExists(this._doc, this._doc.channel, this._doc.bar));
                                 const pattern = this._doc.getCurrentPattern(this._barOffset);
                                 if (pattern === null)
@@ -18566,6 +18626,7 @@ Config.chipWaves = toNameMap([
             for (const oldPin of this._cursor.pins) {
                 note.pins.push(makeNotePin(0, oldPin.time, oldPin.size));
             }
+            sequence.append(new ChangeForkPatternForTimeSig(this._doc, this._doc.channel, this._doc.bar));
             sequence.append(new ChangeEnsurePatternExists(this._doc, this._doc.channel, this._doc.bar));
             const pattern = this._doc.getCurrentPattern(this._barOffset);
             if (pattern === null)
