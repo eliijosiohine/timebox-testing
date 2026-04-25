@@ -4116,7 +4116,6 @@ Config.chipWaves = toNameMap([
         constructor() {
             this.notes = [];
             this.instruments = [0];
-            this.beatsPerBar = null; // tracks the time sig this pattern was authored in
         }
         cloneNotes() {
             const result = [];
@@ -4129,7 +4128,6 @@ Config.chipWaves = toNameMap([
             this.notes.length = 0;
             this.instruments[0] = 0;
             this.instruments.length = 1;
-            this.beatsPerBar = null;
         }
         toJsonObject(song) {
             const noteArray = [];
@@ -13635,7 +13633,6 @@ Config.chipWaves = toNameMap([
             const ratio = newBeats / oldBeats;
             const newPattern = song.channels[channelIndex].patterns[newSlotIndex - 1];
             newPattern.instruments = srcPattern.instruments.concat();
-            newPattern.beatsPerBar = newBeats; // record new authoring time sig
             newPattern.notes = [];
             for (const srcNote of srcPattern.notes) {
                 const newNote = new Note(-1, 0, 1, Config.noteSizeMax);
@@ -15296,10 +15293,6 @@ Config.chipWaves = toNameMap([
             this.redo();
         }
         _doForwards() {
-            // Stamp the pattern's time signature the first time a note is drawn into it.
-            if (this._pattern.beatsPerBar == null && this._pattern.notes.length === 0 && !this._deletion) {
-                this._pattern.beatsPerBar = this._doc.song.getEffectiveBeatsPerBar(this._doc.bar);
-            }
             this._pattern.notes.splice(this._index, 0, this._note);
             this._doc.notifier.changed();
         }
@@ -16409,24 +16402,38 @@ Config.chipWaves = toNameMap([
             this.selectionUpdated();
         }
         setPattern(pattern) {
-            // If the user is trying to place a non-empty pattern that was authored in
-            // a different time signature onto this bar, clone & stretch it instead of
-            // sharing it directly.
+            // Guard: if the user is placing a non-empty pattern onto a bar whose time
+            // signature differs from every bar that currently uses that pattern, we must
+            // clone & stretch rather than share the pattern directly.
             if (pattern !== 0) {
                 const song = this._doc.song;
                 const bar = this.boxSelectionBar;
                 const channelIndex = this.boxSelectionChannel;
-                const destBeats = song.getEffectiveBeatsPerBar(bar);
                 const srcPattern = song.channels[channelIndex].patterns[pattern - 1];
-                if (srcPattern != null &&
-                    srcPattern.notes.length > 0 &&
-                    srcPattern.beatsPerBar != null &&
-                    srcPattern.beatsPerBar !== destBeats) {
-                    // Time signature mismatch — clone and stretch into a new pattern slot.
-                    this._doc.record(new ChangeCloneAndStretchForTimeSig(
-                        this._doc, pattern, bar, channelIndex,
-                        srcPattern.beatsPerBar, destBeats));
-                    return;
+                if (srcPattern != null && srcPattern.notes.length > 0) {
+                    const destBeats = song.getEffectiveBeatsPerBar(bar);
+                    // Find the beats-per-bar used by any bar that already references
+                    // this pattern number on this channel.
+                    let srcBeats = null;
+                    for (let bi = 0; bi < song.barCount; bi++) {
+                        if (song.channels[channelIndex].bars[bi] === pattern) {
+                            const bitsAtBar = song.getEffectiveBeatsPerBar(bi);
+                            if (srcBeats === null) {
+                                srcBeats = bitsAtBar;
+                            } else if (srcBeats !== bitsAtBar) {
+                                // The pattern is already used across mismatched bars —
+                                // use the first one we found as the authoritative sig.
+                                break;
+                            }
+                        }
+                    }
+                    if (srcBeats !== null && srcBeats !== destBeats) {
+                        // Time signature mismatch — clone and stretch into a new slot.
+                        this._doc.record(new ChangeCloneAndStretchForTimeSig(
+                            this._doc, pattern, bar, channelIndex,
+                            srcBeats, destBeats));
+                        return;
+                    }
                 }
             }
             this._doc.record(new ChangePatternNumbers(this._doc, pattern, this.boxSelectionBar, this.boxSelectionChannel, this.boxSelectionWidth, this.boxSelectionHeight));
