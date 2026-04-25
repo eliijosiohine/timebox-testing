@@ -68,7 +68,8 @@ Config.scales = toNameMap([
 { name: "Other Phrygian", flags: [true, true, false, true, false, true, false, true, true, false, true, false] },
 { name: "Other Piongio", flags: [true, false, true, false, false, true, false, true, false, true, true, false] },
 { name: "Other Prometheus", flags: [true, false, true, false, true, false, true, false, false, true, true, false] },
-{ name: "Other Whole Tone", flags: [true, false, true, false, true, false, true, false, true, false, true, false] }
+{ name: "Other Whole Tone", flags: [true, false, true, false, true, false, true, false, true, false, true, false] },
+	{ name: "Chromatic", flags: [true, true, true, true, true, true, true, true, true, true, true, true] },
 	    ]);
   Config.keys = toNameMap([
         { name: "C", isWhiteKey: true, basePitch: 12 },
