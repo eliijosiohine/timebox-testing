@@ -1,4 +1,4 @@
-var beepbox = (function (exports) {
+var timebox = (function (exports) {
     'use strict';
 
     /*!
@@ -213,7 +213,7 @@ Config.scales = toNameMap([
         // Always prefer the cached reference; fall back to DOM lookup.
         const display = timeSignatureDisplay || document.getElementById("timeSignatureValue");
         if (!display) return;
-        const doc = window.beepboxEditor && window.beepboxEditor.doc;
+        const doc = window.timeboxEditor && window.timeboxEditor.doc;
         if (!doc || !doc.song) return;
         const song = doc.song;
         // Clamp for display only — never mutate song.rhythm here.
@@ -224,7 +224,7 @@ Config.scales = toNameMap([
     }
 
     function showTimeSignatureDialog() {
-        const doc = window.beepboxEditor && window.beepboxEditor.doc;
+        const doc = window.timeboxEditor && window.timeboxEditor.doc;
         if (!doc || !doc.song) return;
         // Read song state fresh at dialog-open time.
         const song = doc.song;
@@ -330,7 +330,7 @@ Config.scales = toNameMap([
             const newBeats = parseInt(beatSelect.value);
             let selectedRhythmIdx = parseInt(rhythmSelect.value);
             const strategy = strategySelect.value;
-            const doc = window.beepboxEditor.doc;
+            const doc = window.timeboxEditor.doc;
 
             // Handle the "Custom..." selection
             if (Config.rhythms[selectedRhythmIdx].stepsPerBeat === -1) {
@@ -398,8 +398,8 @@ Config.scales = toNameMap([
             }
 
             // Sync UI
-            if (window.beepboxEditor && typeof window.beepboxEditor.whenUpdated === "function") {
-                window.beepboxEditor.whenUpdated();
+            if (window.timeboxEditor && typeof window.timeboxEditor.whenUpdated === "function") {
+                window.timeboxEditor.whenUpdated();
             }
 
             updateTimeSignatureDisplay();
@@ -429,10 +429,10 @@ Config.scales = toNameMap([
         }
 
         // Attach the notifier watcher exactly once, but only after the editor
-        // and its doc are available (window.beepboxEditor is set in _whenResized,
+        // and its doc are available (window.timeboxEditor is set in _whenResized,
         // which fires after the first layout pass — not at load time).
-        if (!_timeSignatureWatcherAttached && window.beepboxEditor && window.beepboxEditor.doc) {
-            window.beepboxEditor.doc.notifier.watch(updateTimeSignatureDisplay);
+        if (!_timeSignatureWatcherAttached && window.timeboxEditor && window.timeboxEditor.doc) {
+            window.timeboxEditor.doc.notifier.watch(updateTimeSignatureDisplay);
             _timeSignatureWatcherAttached = true;
         }
 
@@ -1709,7 +1709,7 @@ Config.chipWaves = toNameMap([
                 --noise5-primary-note:      #6688AA;
             }
 
-            .beepboxEditor button, .beepboxEditor select {
+            .timeboxEditor button, .timeboxEditor select {
                 box-shadow: inset 0 0 0 1px var(--secondary-text);
             }
         `,
@@ -1983,7 +1983,7 @@ Config.chipWaves = toNameMap([
 
 
 
-.beepboxEditor {
+.timeboxEditor {
     display: grid;
     grid-template-columns: minmax(0, 1fr) max-content;
     grid-template-rows: max-content 1fr; /* max-content minmax(0, 1fr); Chrome 80 grid layout regression. https://bugs.chromium.org/p/chromium/issues/detail?id=1050307 */
@@ -1999,7 +1999,7 @@ Config.chipWaves = toNameMap([
     background: ${ColorConfig.editorBackground};
 }
 
-.beepboxEditor .noSelection {
+.timeboxEditor .noSelection {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -2007,12 +2007,12 @@ Config.chipWaves = toNameMap([
     user-select: none;
 }
 
-.beepboxEditor div {
+.timeboxEditor div {
     margin: 0;
     padding: 0;
 }
 
-.beepboxEditor .pattern-area {
+.timeboxEditor .pattern-area {
     grid-area: pattern-area;
     height: 481px;
     display: flex;
@@ -2020,11 +2020,11 @@ Config.chipWaves = toNameMap([
     position: relative;
 }
 
-.beepboxEditor .track-area {
+.timeboxEditor .track-area {
     grid-area: track-area;
 }
 
-.beepboxEditor .loopEditor {
+.timeboxEditor .loopEditor {
     height: 20px;
     position: sticky;
     bottom: 0;
@@ -2032,7 +2032,7 @@ Config.chipWaves = toNameMap([
     background-color: ${ColorConfig.editorBackground};
 }
 
-.beepboxEditor .timeSignatureEditor {
+.timeboxEditor .timeSignatureEditor {
     height: 20px;
     position: sticky;
     bottom: 30px;
@@ -2044,7 +2044,7 @@ Config.chipWaves = toNameMap([
     overflow: hidden;
 }
 
-.beepboxEditor .settings-area {
+.timeboxEditor .settings-area {
     grid-area: settings-area;
     display: grid;
     grid-template-columns: auto;
@@ -2053,27 +2053,27 @@ Config.chipWaves = toNameMap([
     grid-column-gap: 6px;
 }
 
-.beepboxEditor .version-area{ grid-area: version-area; }
-.beepboxEditor .play-pause-area{ grid-area: play-pause-area; }
-.beepboxEditor .menu-area{ grid-area: menu-area; }
-.beepboxEditor .song-settings-area{ grid-area: song-settings-area; }
-.beepboxEditor .instrument-settings-area{ grid-area: instrument-settings-area; }
+.timeboxEditor .version-area{ grid-area: version-area; }
+.timeboxEditor .play-pause-area{ grid-area: play-pause-area; }
+.timeboxEditor .menu-area{ grid-area: menu-area; }
+.timeboxEditor .song-settings-area{ grid-area: song-settings-area; }
+.timeboxEditor .instrument-settings-area{ grid-area: instrument-settings-area; }
 
-.beepboxEditor .tip {
+.timeboxEditor .tip {
     cursor: help;
     color: ${ColorConfig.secondaryText};
     text-decoration: none;
 }
 
-.beepboxEditor .tip:hover {
+.timeboxEditor .tip:hover {
     color: ${ColorConfig.linkAccent};
     text-decoration: underline;
 }
-.beepboxEditor .tip:active {
+.timeboxEditor .tip:active {
     color: ${ColorConfig.primaryText};
 }
 
-.beepboxEditor .volume-speaker {
+.timeboxEditor .volume-speaker {
     flex-shrink: 0;
     width: var(--button-size);
     height: var(--button-size);
@@ -2086,18 +2086,18 @@ Config.chipWaves = toNameMap([
     mask-position: center;
 }
 
-.beepboxEditor .playback-volume-controls {
+.timeboxEditor .playback-volume-controls {
     display: flex;
     flex-direction: row;
     align-items: center;
 }
 
-.beepboxEditor .playback-volume-controls > :last-child {
+.timeboxEditor .playback-volume-controls > :last-child {
     width: 5em;
     flex-grow: 1;
 }
 
-.beepboxEditor .drum-button {
+.timeboxEditor .drum-button {
     flex: 1;
     background-color: transparent;
     background-image: var(--drum-symbol);
@@ -2105,13 +2105,13 @@ Config.chipWaves = toNameMap([
     background-position: center;
 }
 
-.beepboxEditor .piano-button {
+.timeboxEditor .piano-button {
     flex: 1;
     position: relative;
     display: flex;
     align-items: center;
 }
-.beepboxEditor .piano-button::before {
+.timeboxEditor .piano-button::before {
     content: "";
     position: absolute;
     left: 0;
@@ -2124,7 +2124,7 @@ Config.chipWaves = toNameMap([
     background-position: center;
     background-size: 100% 115.38%;
 }
-.beepboxEditor .piano-button.disabled::after {
+.timeboxEditor .piano-button.disabled::after {
     content: "";
     position: absolute;
     right: 0;
@@ -2141,14 +2141,14 @@ Config.chipWaves = toNameMap([
     mask-position: center;
 }
 
-.beepboxEditor .piano-button.pressed, .beepboxEditor .drum-button.pressed {
+.timeboxEditor .piano-button.pressed, .timeboxEditor .drum-button.pressed {
     filter: brightness(0.5);
 }
 
-.beepboxEditor .customize-instrument {
+.timeboxEditor .customize-instrument {
     margin: 2px 0;
 }
-.beepboxEditor .customize-instrument::before {
+.timeboxEditor .customize-instrument::before {
     content: "";
     flex-shrink: 0;
     position: absolute;
@@ -2167,15 +2167,15 @@ Config.chipWaves = toNameMap([
     mask-position: center;
 }
 
-.beepboxEditor .instrumentCopyPasteRow {
+.timeboxEditor .instrumentCopyPasteRow {
     gap: 2px;
 }
 
-.beepboxEditor .copy-instrument {
+.timeboxEditor .copy-instrument {
     margin: 2px 0;
     flex-grow: 1;
 }
-.beepboxEditor .copy-instrument::before {
+.timeboxEditor .copy-instrument::before {
     content: "";
     flex-shrink: 0;
     position: absolute;
@@ -2194,11 +2194,11 @@ Config.chipWaves = toNameMap([
     mask-position: center;
 }
 
-.beepboxEditor .paste-instrument {
+.timeboxEditor .paste-instrument {
     margin: 2px 0;
     flex-grow: 1;
 }
-.beepboxEditor .paste-instrument::before {
+.timeboxEditor .paste-instrument::before {
     content: "";
     flex-shrink: 0;
     position: absolute;
@@ -2217,21 +2217,21 @@ Config.chipWaves = toNameMap([
     mask-position: center;
 }
 
-.beepboxEditor .envelopeEditor {
+.timeboxEditor .envelopeEditor {
     display: flex;
     flex-direction: column;
 }
 
-.beepboxEditor .envelope-row {
+.timeboxEditor .envelope-row {
     display: flex;
     margin: 2px 0;
     gap: 2px;
 }
 
-.beepboxEditor .add-envelope {
+.timeboxEditor .add-envelope {
     width: var(--button-size);
 }
-.beepboxEditor .add-envelope::before {
+.timeboxEditor .add-envelope::before {
     content: "";
     position: absolute;
     width: var(--button-size);
@@ -2247,15 +2247,15 @@ Config.chipWaves = toNameMap([
     -webkit-mask-repeat: no-repeat;
     -webkit-mask-position: center;
 }
-.beepboxEditor .add-envelope:disabled {
+.timeboxEditor .add-envelope:disabled {
     visibility: hidden;
 }
 
-.beepboxEditor .effects-menu {
+.timeboxEditor .effects-menu {
     width: var(--button-size);
     position: relative;
 }
-.beepboxEditor .effects-menu::before {
+.timeboxEditor .effects-menu::before {
     content: "";
     position: absolute;
     width: var(--button-size);
@@ -2272,18 +2272,18 @@ Config.chipWaves = toNameMap([
     -webkit-mask-position: center;
 }
 
-.beepboxEditor .zoomInButton, .beepboxEditor .zoomOutButton {
+.timeboxEditor .zoomInButton, .timeboxEditor .zoomOutButton {
     width: var(--button-size);
     position: absolute;
     right: 10px;
 }
-.beepboxEditor .zoomInButton {
+.timeboxEditor .zoomInButton {
     top: 10px;
 }
-.beepboxEditor .zoomOutButton {
+.timeboxEditor .zoomOutButton {
     top: 50px;
 }
-.beepboxEditor .zoomInButton::before {
+.timeboxEditor .zoomInButton::before {
     content: "";
     position: absolute;
     width: var(--button-size);
@@ -2299,7 +2299,7 @@ Config.chipWaves = toNameMap([
     -webkit-mask-repeat: no-repeat;
     -webkit-mask-position: center;
 }
-.beepboxEditor .zoomOutButton::before {
+.timeboxEditor .zoomOutButton::before {
     content: "";
     position: absolute;
     width: var(--button-size);
@@ -2316,12 +2316,12 @@ Config.chipWaves = toNameMap([
     -webkit-mask-position: center;
 }
 
-.beepboxEditor .delete-envelope {
+.timeboxEditor .delete-envelope {
     width: var(--button-size);
     flex-shrink: 0;
     flex-grow: 0;
 }
-.beepboxEditor .delete-envelope::before {
+.timeboxEditor .delete-envelope::before {
     content: "";
     position: absolute;
     width: var(--button-size);
@@ -2337,11 +2337,11 @@ Config.chipWaves = toNameMap([
     -webkit-mask-repeat: no-repeat;
     -webkit-mask-position: center;
 }
-.beepboxEditor .delete-envelope:disabled {
+.timeboxEditor .delete-envelope:disabled {
     visibility: hidden;
 }
 
-.beepboxEditor .menu.file::before {
+.timeboxEditor .menu.file::before {
     content: "";
     flex-shrink: 0;
     position: absolute;
@@ -2360,7 +2360,7 @@ Config.chipWaves = toNameMap([
     mask-position: center;
 }
 
-.beepboxEditor .menu.edit::before {
+.timeboxEditor .menu.edit::before {
     content: "";
     flex-shrink: 0;
     position: absolute;
@@ -2379,7 +2379,7 @@ Config.chipWaves = toNameMap([
     mask-position: center;
 }
 
-.beepboxEditor .menu.preferences::before {
+.timeboxEditor .menu.preferences::before {
     content: "";
     flex-shrink: 0;
     position: absolute;
@@ -2398,7 +2398,7 @@ Config.chipWaves = toNameMap([
     mask-position: center;
 }
 
-.beepboxEditor .mute-button::before {
+.timeboxEditor .mute-button::before {
     content: "";
     pointer-events: none;
     width: 100%;
@@ -2415,13 +2415,13 @@ Config.chipWaves = toNameMap([
     mask-size: contain;
 }
 
-.beepboxEditor .mute-button.muted::before {
+.timeboxEditor .mute-button.muted::before {
     background: ${ColorConfig.editorBackground};
     -webkit-mask-image: var(--muted-symbol);
     mask-image: var(--muted-symbol);
 }
 
-.beepboxEditor .promptContainer {
+.timeboxEditor .promptContainer {
     position: absolute;
     top: 0;
     left: 0;
@@ -2433,7 +2433,7 @@ Config.chipWaves = toNameMap([
     z-index: 100;
 }
 
-.beepboxEditor .promptContainer::before {
+.timeboxEditor .promptContainer::before {
     content: "";
     position: absolute;
     top: 0;
@@ -2445,7 +2445,7 @@ Config.chipWaves = toNameMap([
     display: flex;
 }
 
-.beepboxEditor .prompt {
+.timeboxEditor .prompt {
     margin: auto;
     text-align: center;
     background: ${ColorConfig.editorBackground};
@@ -2459,35 +2459,35 @@ Config.chipWaves = toNameMap([
     box-shadow: 5px 5px 20px 10px rgba(0,0,0,0.5);
 }
 
-.beepboxEditor .prompt > *:not(:first-child):not(.cancelButton) {
+.timeboxEditor .prompt > *:not(:first-child):not(.cancelButton) {
     margin-top: 1.5em;
 }
 
-.beepboxEditor .prompt h2 {
+.timeboxEditor .prompt h2 {
     font-size: 2em;
     margin: 0 16px;
     font-weight: normal;
 }
 
-.beepboxEditor .prompt p {
+.timeboxEditor .prompt p {
     text-align: left;
     margin: 1em 0;
 }
 
-.beepboxEditor .prompt label {
+.timeboxEditor .prompt label {
     cursor: pointer;
 }
 
-.beepboxEditor .prompt.recordingSetupPrompt p {
+.timeboxEditor .prompt.recordingSetupPrompt p {
     margin-top: 0.75em;
     margin-bottom: 0;
 }
 
-.beepboxEditor .prompt.recordingSetupPrompt > label:not(:first-child):not(.cancelButton) {
+.timeboxEditor .prompt.recordingSetupPrompt > label:not(:first-child):not(.cancelButton) {
     margin: 2px 0;
 }
 
-.beepboxEditor .layout-option {
+.timeboxEditor .layout-option {
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -2495,18 +2495,18 @@ Config.chipWaves = toNameMap([
     color: ${ColorConfig.secondaryText};
 }
 
-.beepboxEditor .layout-option input {
+.timeboxEditor .layout-option input {
     display: none;
 }
 
-.beepboxEditor .layout-option input:checked ~ * {
+.timeboxEditor .layout-option input:checked ~ * {
     color: ${ColorConfig.primaryText};
 }
 
-.beepboxEditor .selectContainer {
+.timeboxEditor .selectContainer {
     position: relative;
 }
-.beepboxEditor .selectContainer:not(.menu)::after {
+.timeboxEditor .selectContainer:not(.menu)::after {
     content: "";
     flex-shrink: 0;
     position: absolute;
@@ -2524,7 +2524,7 @@ Config.chipWaves = toNameMap([
     mask-repeat: no-repeat;
     mask-position: center;
 }
-.beepboxEditor .selectContainer.menu::after {
+.timeboxEditor .selectContainer.menu::after {
     content: "";
     flex-shrink: 0;
     position: absolute;
@@ -2542,7 +2542,7 @@ Config.chipWaves = toNameMap([
     mask-repeat: no-repeat;
     mask-position: center;
 }
-.beepboxEditor select {
+.timeboxEditor select {
     margin: 0;
     padding: 0 4px;
     display: block;
@@ -2560,27 +2560,27 @@ Config.chipWaves = toNameMap([
     -moz-appearance: none;
     appearance: none;
 }
-.beepboxEditor .menu select {
+.timeboxEditor .menu select {
     padding: 0 var(--button-size);
 }
-.beepboxEditor select:focus {
+.timeboxEditor select:focus {
     background: ${ColorConfig.uiWidgetFocus};
     outline: none;
 }
-.beepboxEditor .menu select {
+.timeboxEditor .menu select {
     text-align: center;
     text-align-last: center;
 }
-.beepboxEditor .settings-area select {
+.timeboxEditor .settings-area select {
        width: 100%;
 }
 
 /* This makes it look better in firefox on my computer... What about others?
 @-moz-document url-prefix() {
-    .beepboxEditor select { padding: 0 2px; }
+    .timeboxEditor select { padding: 0 2px; }
 }
 */
-.beepboxEditor button {
+.timeboxEditor button {
     margin: 0;
     position: relative;
     height: var(--button-size);
@@ -2593,12 +2593,12 @@ Config.chipWaves = toNameMap([
     font-weight: inherit;
     cursor: pointer;
 }
-.beepboxEditor button:focus {
+.timeboxEditor button:focus {
     background: ${ColorConfig.uiWidgetFocus};
     outline: none;
 }
 
-.beepboxEditor button.cancelButton {
+.timeboxEditor button.cancelButton {
     float: right;
     width: var(--button-size);
     position: absolute;
@@ -2606,14 +2606,14 @@ Config.chipWaves = toNameMap([
     right: 8px;
 }
 
-.beepboxEditor .playback-bar-controls {
+.timeboxEditor .playback-bar-controls {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
     grid-template-rows: min-content;
     grid-column-gap: 4px;
 }
 
-.beepboxEditor button.playButton::before {
+.timeboxEditor button.playButton::before {
     content: "";
     flex-shrink: 0;
     position: absolute;
@@ -2631,7 +2631,7 @@ Config.chipWaves = toNameMap([
     mask-repeat: no-repeat;
     mask-position: center;
 }
-.beepboxEditor button.pauseButton::before {
+.timeboxEditor button.pauseButton::before {
     content: "";
     flex-shrink: 0;
     position: absolute;
@@ -2649,7 +2649,7 @@ Config.chipWaves = toNameMap([
     mask-repeat: no-repeat;
     mask-position: center;
 }
-.beepboxEditor button.recordButton::before {
+.timeboxEditor button.recordButton::before {
     content: "";
     flex-shrink: 0;
     position: absolute;
@@ -2667,7 +2667,7 @@ Config.chipWaves = toNameMap([
     mask-repeat: no-repeat;
     mask-position: center;
 }
-.beepboxEditor button.stopButton::before {
+.timeboxEditor button.stopButton::before {
     content: "";
     flex-shrink: 0;
     position: absolute;
@@ -2686,7 +2686,7 @@ Config.chipWaves = toNameMap([
     mask-position: center;
 }
 
-.beepboxEditor button.prevBarButton::before {
+.timeboxEditor button.prevBarButton::before {
     content: "";
     flex-shrink: 0;
     position: absolute;
@@ -2705,7 +2705,7 @@ Config.chipWaves = toNameMap([
     mask-position: center;
 }
 
-.beepboxEditor button.nextBarButton::before {
+.timeboxEditor button.nextBarButton::before {
     content: "";
     flex-shrink: 0;
     position: absolute;
@@ -2724,47 +2724,47 @@ Config.chipWaves = toNameMap([
     mask-position: center;
 }
 
-.beepboxEditor button.playButton, .beepboxEditor button.pauseButton, .beepboxEditor button.recordButton, .beepboxEditor button.stopButton, .beepboxEditor button.okayButton, .beepboxEditor button.exportButton {
+.timeboxEditor button.playButton, .timeboxEditor button.pauseButton, .timeboxEditor button.recordButton, .timeboxEditor button.stopButton, .timeboxEditor button.okayButton, .timeboxEditor button.exportButton {
     padding-left: var(--button-size);
 }
-.beepboxEditor button.playButton, .beepboxEditor button.pauseButton, .beepboxEditor button.recordButton {
+.timeboxEditor button.playButton, .timeboxEditor button.pauseButton, .timeboxEditor button.recordButton {
     grid-column-start: 1;
     grid-column-end: 3;
 }
-.beepboxEditor button.stopButton {
+.timeboxEditor button.stopButton {
     grid-column-start: 1;
     grid-column-end: 5;
 }
-.beepboxEditor button.prevBarButton {
+.timeboxEditor button.prevBarButton {
     grid-column-start: 3;
     grid-column-end: 4;
 }
-.beepboxEditor button.nextBarButton {
+.timeboxEditor button.nextBarButton {
     grid-column-start: 4;
     grid-column-end: 5;
 }
 
-.beepboxEditor button.playButton.shrunk, .beepboxEditor button.recordButton.shrunk {
+.timeboxEditor button.playButton.shrunk, .timeboxEditor button.recordButton.shrunk {
     padding: 0;
 }
-.beepboxEditor button.playButton.shrunk::before, .beepboxEditor button.recordButton.shrunk::before {
+.timeboxEditor button.playButton.shrunk::before, .timeboxEditor button.recordButton.shrunk::before {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
 }
-.beepboxEditor button.playButton.shrunk span, .beepboxEditor button.recordButton.shrunk span {
+.timeboxEditor button.playButton.shrunk span, .timeboxEditor button.recordButton.shrunk span {
     display: none;
 }
-.beepboxEditor button.playButton.shrunk {
+.timeboxEditor button.playButton.shrunk {
     grid-column-start: 1;
     grid-column-end: 2;
 }
-.beepboxEditor button.recordButton.shrunk {
+.timeboxEditor button.recordButton.shrunk {
     grid-column-start: 2;
     grid-column-end: 3;
 }
 
-.beepboxEditor button.cancelButton::before {
+.timeboxEditor button.cancelButton::before {
     content: "";
     position: absolute;
     width: var(--button-size);
@@ -2781,7 +2781,7 @@ Config.chipWaves = toNameMap([
     -webkit-mask-position: center;
 }
 
-.beepboxEditor button.okayButton::before {
+.timeboxEditor button.okayButton::before {
     content: "";
     position: absolute;
     width: var(--button-size);
@@ -2798,7 +2798,7 @@ Config.chipWaves = toNameMap([
     mask-position: center;
 }
 
-.beepboxEditor button.exportButton::before {
+.timeboxEditor button.exportButton::before {
     content: "";
     position: absolute;
     width: var(--button-size);
@@ -2815,12 +2815,12 @@ Config.chipWaves = toNameMap([
     -webkit-mask-position: center;
 }
 
-.beepboxEditor .instrument-bar {
+.timeboxEditor .instrument-bar {
     display: flex;
     gap: 2px;
 }
 
-.beepboxEditor .instrument-bar button {
+.timeboxEditor .instrument-bar button {
     flex-grow: 1;
     min-width: 0;
     padding: 0;
@@ -2831,36 +2831,36 @@ Config.chipWaves = toNameMap([
     color: var(--text-color-lit);
 }
 
-.beepboxEditor .instrument-bar .remove-instrument, .beepboxEditor .instrument-bar .add-instrument {
+.timeboxEditor .instrument-bar .remove-instrument, .timeboxEditor .instrument-bar .add-instrument {
     max-width: var(--button-size);
 }
 
-.beepboxEditor .instrument-bar > :not(:first-child) {
+.timeboxEditor .instrument-bar > :not(:first-child) {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
 }
 
-.beepboxEditor .instrument-bar > :not(.last-button) {
+.timeboxEditor .instrument-bar > :not(.last-button) {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
 }
 
-.beepboxEditor .instrument-bar .selected-instrument {
+.timeboxEditor .instrument-bar .selected-instrument {
     background: var(--background-color-lit);
     color: ${ColorConfig.invertedText};
 }
 
-.beepboxEditor .instrument-bar .deactivated {
+.timeboxEditor .instrument-bar .deactivated {
     background: ${ColorConfig.editorBackground};
     color: var(--text-color-dim);
 }
 
-.beepboxEditor .instrument-bar .deactivated.selected-instrument {
+.timeboxEditor .instrument-bar .deactivated.selected-instrument {
     background: var(--background-color-dim);
     color: ${ColorConfig.invertedText};
 }
 
-.beepboxEditor .instrument-bar .remove-instrument::before {
+.timeboxEditor .instrument-bar .remove-instrument::before {
     content: "";
     position: absolute;
     width: 100%;
@@ -2877,7 +2877,7 @@ Config.chipWaves = toNameMap([
     -webkit-mask-position: center;
 }
 
-.beepboxEditor .instrument-bar .add-instrument::before {
+.timeboxEditor .instrument-bar .add-instrument::before {
     content: "";
     position: absolute;
     width: 100%;
@@ -2894,17 +2894,17 @@ Config.chipWaves = toNameMap([
     -webkit-mask-position: center;
 }
 
-.beepboxEditor canvas {
+.timeboxEditor canvas {
     overflow: hidden;
     position: absolute;
     display: block;
 }
 
-.beepboxEditor .trackContainer {
+.timeboxEditor .trackContainer {
     flex-grow: 1;
 }
 
-.beepboxEditor .trackAndMuteContainer {
+.timeboxEditor .trackAndMuteContainer {
     display: flex;
     align-items: flex-start;
     width: 100%;
@@ -2914,11 +2914,11 @@ Config.chipWaves = toNameMap([
     position: relative;
 }
 
-.beepboxEditor .channelRow {
+.timeboxEditor .channelRow {
     display: flex;
 }
 
-.beepboxEditor .channelBox {
+.timeboxEditor .channelBox {
     display: flex;
     text-align: center;
     align-items: center;
@@ -2927,17 +2927,17 @@ Config.chipWaves = toNameMap([
     padding-top: 1px;
 }
 
-.beepboxEditor .channelBoxLabel {
+.timeboxEditor .channelBoxLabel {
     font-size: 20px;
     font-family: sans-serif;
     font-weight: bold;
 }
 
-.beepboxEditor .channelBoxLabel.smaller-digits {
+.timeboxEditor .channelBoxLabel.smaller-digits {
     font-size: 18px;
 }
 
-.beepboxEditor .muteEditor {
+.timeboxEditor .muteEditor {
     width: 32px;
     flex-shrink: 0;
     display: flex;
@@ -2949,7 +2949,7 @@ Config.chipWaves = toNameMap([
     background: ${ColorConfig.editorBackground};
 }
 
-.beepboxEditor .selectRow, .beepboxEditor .instrumentCopyPasteRow {
+.timeboxEditor .selectRow, .timeboxEditor .instrumentCopyPasteRow {
     margin: 2px 0;
     height: var(--button-size);
     display: flex;
@@ -2958,44 +2958,44 @@ Config.chipWaves = toNameMap([
     justify-content: space-between;
 }
 
-.beepboxEditor .selectRow > :last-child {
+.timeboxEditor .selectRow > :last-child {
     width: 62.5%;
     flex-shrink: 0;
 }
 
-.beepboxEditor .menu-area {
+.timeboxEditor .menu-area {
     display: flex;
     flex-direction: column;
 }
-.beepboxEditor .menu-area > * {
+.timeboxEditor .menu-area > * {
     margin: 2px 0;
 }
-.beepboxEditor .menu-area > button {
+.timeboxEditor .menu-area > button {
     padding: 0 var(--button-size);
     white-space: nowrap;
 }
 
-.beepboxEditor .song-settings-area {
+.timeboxEditor .song-settings-area {
     display: flex;
     flex-direction: column;
 }
 
-.beepboxEditor .editor-controls {
+.timeboxEditor .editor-controls {
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
 }
 
-.beepboxEditor .instrument-settings-area {
+.timeboxEditor .instrument-settings-area {
     display: flex;
     flex-direction: column;
 }
 
-.beepboxEditor .editor-right-side-top > *, .beepboxEditor .editor-right-side-bottom > * {
+.timeboxEditor .editor-right-side-top > *, .timeboxEditor .editor-right-side-bottom > * {
     flex-shrink: 0;
 }
 
-.beepboxEditor .pitchShiftMarkerContainer {
+.timeboxEditor .pitchShiftMarkerContainer {
     box-sizing: border-box;
     display: flex;
     height: 100%;
@@ -3006,13 +3006,13 @@ Config.chipWaves = toNameMap([
     pointer-events: none;
 }
 
-.beepboxEditor .pitchShiftMarker {
+.timeboxEditor .pitchShiftMarker {
     width: 0;
     height: 0;
     position: absolute;
 }
 
-.beepboxEditor .pitchShiftMarker::before {
+.timeboxEditor .pitchShiftMarker::before {
     content: "";
     width: 2px;
     height: 20px;
@@ -3022,7 +3022,7 @@ Config.chipWaves = toNameMap([
     border-radius: 3px;
 }
 
-.beepboxEditor input[type=text], .beepboxEditor input[type=number] {
+.timeboxEditor input[type=text], .timeboxEditor input[type=number] {
     font-size: inherit;
     font-weight: inherit;
     font-family: inherit;
@@ -3031,16 +3031,16 @@ Config.chipWaves = toNameMap([
     color: ${ColorConfig.primaryText};
 }
 
-.beepboxEditor input[type=text]::selection, .beepboxEditor input[type=number]::selection {
+.timeboxEditor input[type=text]::selection, .timeboxEditor input[type=number]::selection {
     background-color: ${ColorConfig.textSelection};
     color: ${ColorConfig.primaryText};
 }
 
-.beepboxEditor input[type=checkbox] {
+.timeboxEditor input[type=checkbox] {
   transform: scale(1.5);
 }
 
-.beepboxEditor input[type=range] {
+.timeboxEditor input[type=range] {
     -webkit-appearance: none;
     color: inherit;
     width: 100%;
@@ -3051,16 +3051,16 @@ Config.chipWaves = toNameMap([
     background: none;
     touch-action: pan-y;
 }
-.beepboxEditor input[type=range]:focus {
+.timeboxEditor input[type=range]:focus {
     outline: none;
 }
-.beepboxEditor input[type=range]::-webkit-slider-runnable-track {
+.timeboxEditor input[type=range]::-webkit-slider-runnable-track {
     width: 100%;
     height: 6px;
     cursor: pointer;
     background: ${ColorConfig.uiWidgetBackground};
 }
-.beepboxEditor input[type=range]::-webkit-slider-thumb {
+.timeboxEditor input[type=range]::-webkit-slider-thumb {
     height: var(--button-size);
     width: 6px;
     border-radius: 3px;
@@ -3069,19 +3069,19 @@ Config.chipWaves = toNameMap([
     -webkit-appearance: none;
     margin-top: -10px;
 }
-.beepboxEditor input[type=range]:focus::-webkit-slider-runnable-track {
+.timeboxEditor input[type=range]:focus::-webkit-slider-runnable-track {
     background: ${ColorConfig.uiWidgetFocus};
 }
-.beepboxEditor input[type=range]::-moz-range-track {
+.timeboxEditor input[type=range]::-moz-range-track {
     width: 100%;
     height: 6px;
     cursor: pointer;
     background: ${ColorConfig.uiWidgetBackground};
 }
-.beepboxEditor input[type=range]:focus::-moz-range-track {
+.timeboxEditor input[type=range]:focus::-moz-range-track {
     background: ${ColorConfig.uiWidgetFocus};
 }
-.beepboxEditor input[type=range]::-moz-range-thumb {
+.timeboxEditor input[type=range]::-moz-range-thumb {
     height: var(--button-size);
     width: 6px;
     border-radius: 3px;
@@ -3089,17 +3089,17 @@ Config.chipWaves = toNameMap([
     background: currentColor;
     cursor: pointer;
 }
-.beepboxEditor input[type=range]::-ms-track {
+.timeboxEditor input[type=range]::-ms-track {
     width: 100%;
     height: 6px;
     cursor: pointer;
     background: ${ColorConfig.uiWidgetBackground};
     border-color: transparent;
 }
-.beepboxEditor input[type=range]:focus::-ms-track {
+.timeboxEditor input[type=range]:focus::-ms-track {
     background: ${ColorConfig.uiWidgetFocus};
 }
-.beepboxEditor input[type=range]::-ms-thumb {
+.timeboxEditor input[type=range]::-ms-thumb {
     height: var(--button-size);
     width: 6px;
     border-radius: 3px;
@@ -3107,7 +3107,7 @@ Config.chipWaves = toNameMap([
     cursor: pointer;
 }
 
-.beepboxEditor progress {
+.timeboxEditor progress {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -3117,57 +3117,57 @@ Config.chipWaves = toNameMap([
     border-radius: 5px;
     background-color: ${ColorConfig.uiWidgetBackground};
 }
-.beepboxEditor progress::-webkit-progress-bar {
+.timeboxEditor progress::-webkit-progress-bar {
     background-color: ${ColorConfig.uiWidgetBackground};
     border-radius: 5px;
 }
-.beepboxEditor progress::-webkit-progress-value {
+.timeboxEditor progress::-webkit-progress-value {
     background-color: ${ColorConfig.loopAccent};
     border-radius: 5px;
 }
-.beepboxEditor progress::-moz-progress-bar {
+.timeboxEditor progress::-moz-progress-bar {
     background-color: ${ColorConfig.loopAccent};
     border-radius: 5px;
 }
 
 /* wide screen */
 @media (min-width: 711px) {
-    #beepboxEditorContainer {
+    #timeboxEditorContainer {
         display: table;
     }
-    .beepboxEditor {
+    .timeboxEditor {
         flex-direction: row;
     }
-    .beepboxEditor:focus-within {
+    .timeboxEditor:focus-within {
         outline: 3px solid ${ColorConfig.uiWidgetBackground};
     }
-    .beepboxEditor .trackAndMuteContainer {
+    .timeboxEditor .trackAndMuteContainer {
         width: 512px;
     }
-    .beepboxEditor .play-pause-area {
+    .timeboxEditor .play-pause-area {
         display: flex;
         flex-direction: column;
     }
-    .beepboxEditor .playback-bar-controls {
+    .timeboxEditor .playback-bar-controls {
         margin: 2px 0;
     }
-    .beepboxEditor .playback-volume-controls {
+    .timeboxEditor .playback-volume-controls {
         margin: 2px 0;
     }
-    .beepboxEditor .settings-area {
+    .timeboxEditor .settings-area {
         width: var(--settings-area-width);
     }
 }
 
 /* narrow screen */
 @media (max-width: 710px) {
-    .beepboxEditor {
+    .timeboxEditor {
         grid-template-columns: minmax(0, 1fr);
         grid-template-rows: min-content 6px min-content min-content;
         grid-template-areas: "pattern-area" "." "track-area" "settings-area";
         grid-row-gap: 0;
     }
-    .beepboxEditor .settings-area {
+    .timeboxEditor .settings-area {
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         grid-template-rows: min-content min-content 1fr min-content;
         grid-template-areas:
@@ -3178,28 +3178,28 @@ Config.chipWaves = toNameMap([
         grid-column-gap: 8px;
         margin: 0 4px;
     }
-    .beepboxEditor:focus-within {
+    .timeboxEditor:focus-within {
         outline: none;
     }
-    .beepboxEditor .pattern-area {
+    .timeboxEditor .pattern-area {
         max-height: 75vh;
     }
-    .beepboxEditor .trackAndMuteContainer {
+    .timeboxEditor .trackAndMuteContainer {
         overflow-x: auto;
     }
-    .beepboxEditor .barScrollBar {
+    .timeboxEditor .barScrollBar {
         display: none;
     }
-    .beepboxEditor .play-pause-area {
+    .timeboxEditor .play-pause-area {
         display: grid;
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         grid-column-gap: 8px;
         margin: 2px 0;
     }
-    .beepboxEditor .playback-bar-controls {
+    .timeboxEditor .playback-bar-controls {
         flex-grow: 1;
     }
-    .beepboxEditor .playback-volume-controls {
+    .timeboxEditor .playback-volume-controls {
         flex-grow: 1;
     }
 }
@@ -3216,45 +3216,45 @@ Config.chipWaves = toNameMap([
         "long": `\
             /* long layout */
             @media (min-width: 711px) {
-                #beepboxEditorContainer {
+                #timeboxEditorContainer {
                     max-width: initial;
                     height: 100vh;
                 }
-                .beepboxEditor {
+                .timeboxEditor {
                     width: 100%;
                     height: 100vh;
                     grid-template-columns: minmax(0, 1fr) 390px; /* minmax(0, 1fr) min-content; Chrome 80 grid layout regression. https://bugs.chromium.org/p/chromium/issues/detail?id=1050307 */
                     grid-template-rows: minmax(481px, 1fr) minmax(0, min-content);
                     grid-template-areas: "pattern-area settings-area" "track-area track-area";
                 }
-                .beepboxEditor .pattern-area {
+                .timeboxEditor .pattern-area {
                     width: 100%;
                     height: 100%;
                 }
-                .beepboxEditor .track-area {
+                .timeboxEditor .track-area {
                     width: 100%;
                     display: flex;
                     flex-direction: column;
                 }
-                .beepboxEditor .trackAndMuteContainer {
+                .timeboxEditor .trackAndMuteContainer {
                     width: 100%;
                     min-height: 0;
                     flex: 1;
                     overflow: auto;
                 }
-                .beepboxEditor .instrument-settings-area {
+                .timeboxEditor .instrument-settings-area {
                     overflow-y: auto;
                     position: relative;
                 }
-                .beepboxEditor .instrument-settings-area > .editor-controls {
+                .timeboxEditor .instrument-settings-area > .editor-controls {
                     position: absolute;
                     width: 100%;
                 }
-                .beepboxEditor .song-settings-area {
+                .timeboxEditor .song-settings-area {
                     overflow-y: auto;
                 }
                 
-                .beepboxEditor .settings-area {
+                .timeboxEditor .settings-area {
                     width: 390px;
                     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
                     grid-template-rows: auto auto auto minmax(0, 1fr);
@@ -3265,10 +3265,10 @@ Config.chipWaves = toNameMap([
                         "instrument-settings-area song-settings-area";
                 }
                 
-                .beepboxEditor .barScrollBar {
+                .timeboxEditor .barScrollBar {
                     display: none;
                 }
-                .beepboxEditor .trackContainer {
+                .timeboxEditor .trackContainer {
                     overflow: visible;
                 }
             }
@@ -3276,29 +3276,29 @@ Config.chipWaves = toNameMap([
         "tall": `\
             /* tall layout */
             @media (min-width: 711px) {
-                #beepboxEditorContainer {
+                #timeboxEditorContainer {
                     max-width: initial;
                     height: 100vh;
                 }
-                .beepboxEditor {
+                .timeboxEditor {
                     width: 100%;
                     height: 100vh;
                     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 192px;
                     grid-template-rows: 1fr;
                     grid-template-areas: "track-area pattern-area settings-area";
                 }
-                .beepboxEditor .pattern-area {
+                .timeboxEditor .pattern-area {
                     width: 100%;
                     height: 100%;
                 }
-                .beepboxEditor .track-area {
+                .timeboxEditor .track-area {
                     width: 100%;
                     height: 100%;
                     display: flex;
                     flex-direction: column;
                     justify-content: center;
                 }
-                .beepboxEditor .trackAndMuteContainer {
+                .timeboxEditor .trackAndMuteContainer {
                     width: 100%;
                     min-height: 0;
                     flex: 0;
@@ -3306,12 +3306,12 @@ Config.chipWaves = toNameMap([
                     flex-basis: initial;
                     flex-grow: 0;
                 }
-                .beepboxEditor .instrument-settings-area > .editor-controls {
+                .timeboxEditor .instrument-settings-area > .editor-controls {
                     position: absolute;
                     width: 100%;
                 }
                 
-                .beepboxEditor .settings-area {
+                .timeboxEditor .settings-area {
                     width: 192px;
                     position: relative;
                     overflow-y: auto;
@@ -3324,29 +3324,29 @@ Config.chipWaves = toNameMap([
                         "song-settings-area"
                         "instrument-settings-area";
                 }
-                .beepboxEditor .version-area {
+                .timeboxEditor .version-area {
                     position: sticky;
                     top: 0;
                     z-index: 1;
                     background: ${ColorConfig.editorBackground};
                 }
-                .beepboxEditor .play-pause-area {
+                .timeboxEditor .play-pause-area {
                     position: sticky;
                     top: 22px;
                     z-index: 1;
                     background: ${ColorConfig.editorBackground};
                 }
-                .beepboxEditor .menu-area {
+                .timeboxEditor .menu-area {
                     position: sticky;
                     top: 82px;
                     z-index: 1;
                     background: ${ColorConfig.editorBackground};
                 }
                 
-                .beepboxEditor .barScrollBar {
+                .timeboxEditor .barScrollBar {
                     display: none;
                 }
-                .beepboxEditor .trackContainer {
+                .timeboxEditor .trackContainer {
                     overflow: visible;
                 }
             }
@@ -7159,7 +7159,7 @@ Config.chipWaves = toNameMap([
             return 32 - Math.clz32(Math.ceil(maxValue + 1) - 1);
         }
     }
-    Song._format = "BeepBox";
+    Song._format = "TimeBox";
     Song._oldestVersion = 2;
     Song._latestVersion = 9;
     class PickedString {
@@ -12416,7 +12416,7 @@ Config.chipWaves = toNameMap([
     }
     function errorAlert(error) {
         console.warn(error);
-        window.alert("Whoops, the song data appears to have been corrupted! Please try to recover the last working version of the song from the \"Recover Recent Song...\" option in BeepBox's \"File\" menu.");
+        window.alert("Whoops, the song data appears to have been corrupted! Please try to recover the last working version of the song from the \"Recover Recent Song...\" option in TimeBox's \"File\" menu.");
     }
     function compareSongs(a, b) {
         return b.versions[0].time - a.versions[0].time;
@@ -15046,7 +15046,7 @@ Config.chipWaves = toNameMap([
                         {
                             // Mirror note positions within the new bar.
                             // ChangeRhythmNote requires a monotone function so can't reverse positions.
-                            // Instead we directly mutate note state here — the same pattern BeepBox
+                            // Instead we directly mutate note state here — the same pattern TimeBox
                             // uses in wrapAround and other internal strategies — and call notifier.changed().
                             const newBarParts = newValue * Config.partsPerBeat;
                             const oldBarParts = doc.song.beatsPerBar * Config.partsPerBeat;
@@ -17654,7 +17654,7 @@ Config.chipWaves = toNameMap([
                     break;
                 case "instrumentIndex":
                     {
-                        message = div$b(h2$a("Instrument Number"), p$4("In the \"Channel Settings\" option from BeepBox's \"Edit\" menu, there are a few ways to enable multiple instruments per channel."), p$4("First, you could enable multiple simultaneous instruments per channel. All of the channel's instruments will play all of the notes in the channel at the same time, and you can click an instrument number to view and edit its settings."), p$4("Second, you could enable different instruments per pattern. Only one of the instruments will play at any given time, but you can click the instrument number to change which instrument is used for the currently selected pattern(s)."), p$4("Finally, you can enable them both, in which case you can click an instrument number once to view it, and again to toggle whether the instrument is used for the currently selected pattern(s)."), p$4("Either way, you can click the + button to add more instruments to a channel, and you can press shift and a number key on your keyboard to select an instrument as if you had clicked the corresponding button here."));
+                        message = div$b(h2$a("Instrument Number"), p$4("In the \"Channel Settings\" option from TimeBox's \"Edit\" menu, there are a few ways to enable multiple instruments per channel."), p$4("First, you could enable multiple simultaneous instruments per channel. All of the channel's instruments will play all of the notes in the channel at the same time, and you can click an instrument number to view and edit its settings."), p$4("Second, you could enable different instruments per pattern. Only one of the instruments will play at any given time, but you can click the instrument number to change which instrument is used for the currently selected pattern(s)."), p$4("Finally, you can enable them both, in which case you can click an instrument number once to view it, and again to toggle whether the instrument is used for the currently selected pattern(s)."), p$4("Either way, you can click the + button to add more instruments to a channel, and you can press shift and a number key on your keyboard to select an instrument as if you had clicked the corresponding button here."));
                     }
                     break;
                 case "instrumentVolume":
@@ -17669,7 +17669,7 @@ Config.chipWaves = toNameMap([
                     break;
                 case "instrumentType":
                     {
-                        message = div$b(h2$a("Instrument Type"), p$4("BeepBox comes with many instrument presets, try them out! You can also create your own custom instruments!"), p$4("There are also options for copying and pasting instrument settings and for generating random instruments at the top of the instrument type menu."));
+                        message = div$b(h2$a("Instrument Type"), p$4("TimeBox comes with many instrument presets, try them out! You can also create your own custom instruments!"), p$4("There are also options for copying and pasting instrument settings and for generating random instruments at the top of the instrument type menu."));
                     }
                     break;
                 case "eqFilter":
@@ -17694,12 +17694,12 @@ Config.chipWaves = toNameMap([
                     break;
                 case "chipWave":
                     {
-                        message = div$b(h2$a("Chip Wave"), p$4("BeepBox comes with some sound waves based on classic electronic sound chips, as well as several unique waves. This is the basic source of the sound of the instrument, which is modified by the other instrument settings."));
+                        message = div$b(h2$a("Chip Wave"), p$4("TimeBox comes with some sound waves based on classic electronic sound chips, as well as several unique waves. This is the basic source of the sound of the instrument, which is modified by the other instrument settings."));
                     }
                     break;
                 case "chipNoise":
                     {
-                        message = div$b(h2$a("Noise"), p$4("BeepBox comes with several basic noise sounds. These do not have any distinct musical pitch, and can be used like drums to create beats and emphasize your song's rhythm."));
+                        message = div$b(h2$a("Noise"), p$4("TimeBox comes with several basic noise sounds. These do not have any distinct musical pitch, and can be used like drums to create beats and emphasize your song's rhythm."));
                     }
                     break;
                 case "supersawDynamism":
@@ -17729,7 +17729,7 @@ Config.chipWaves = toNameMap([
                     break;
                 case "chords":
                     {
-                        message = div$b(h2$a("Chords"), p$4("When multiple different notes occur at the same time, this is called a chord. Chords can be created in BeepBox's pattern editor by adding notes above or below another note."), p$4("This setting determines how chords are played. The standard option is \"simultaneous\" which starts playing all of the pitches in a chord at the same instant. The \"strum\" option is similar, but plays the notes starting at slightly different times. The \"arpeggio\" option is used in \"chiptune\" style music and plays a single tone that rapidly alternates between all of the pitches in the chord."), p$4("Some BeepBox instruments have an option called \"custom interval\" which uses the chord notes to control the interval between the waves of a single tone. This can create strange sound effects when combined with FM modulators."));
+                        message = div$b(h2$a("Chords"), p$4("When multiple different notes occur at the same time, this is called a chord. Chords can be created in TimeBox's pattern editor by adding notes above or below another note."), p$4("This setting determines how chords are played. The standard option is \"simultaneous\" which starts playing all of the pitches in a chord at the same instant. The \"strum\" option is similar, but plays the notes starting at slightly different times. The \"arpeggio\" option is used in \"chiptune\" style music and plays a single tone that rapidly alternates between all of the pitches in the chord."), p$4("Some TimeBox instruments have an option called \"custom interval\" which uses the chord notes to control the interval between the waves of a single tone. This can create strange sound effects when combined with FM modulators."));
                     }
                     break;
                 case "vibrato":
@@ -17774,7 +17774,7 @@ Config.chipWaves = toNameMap([
                     break;
                 case "effects":
                     {
-                        message = div$b(h2$a("Effects"), p$4("BeepBox has many different kinds of special effects you can add to instruments. You can turn on multiple effects at once, and they can be configured individually. Try them all out!"));
+                        message = div$b(h2$a("Effects"), p$4("TimeBox has many different kinds of special effects you can add to instruments. You can turn on multiple effects at once, and they can be configured individually. Try them all out!"));
                     }
                     break;
                 case "drumsetEnvelope":
@@ -21471,7 +21471,7 @@ Config.chipWaves = toNameMap([
             this._typeSelect = select$4({ style: "width: 100%;" }, option$4({ value: "acoustic" }, "(A) Acoustic"), option$4({ value: "bright" }, "(B) Bright"));
             this._cancelButton = button$6({ class: "cancelButton" });
             this._okayButton = button$6({ class: "okayButton", style: "width:45%;" }, "Okay");
-            this.container = div$6({ class: "prompt", style: "width: 300px;" }, div$6(h2$5("String Sustain"), p$3("This setting controls how quickly the picked string vibration decays."), p$3("Unlike most of BeepBox's instrument synthesizer features, a picked string cannot change frequency suddenly while maintaining its decay. If a tone's pitch changes suddenly (e.g. if the chord type is set to \"arpeggio\" or the transition type is set to \"continues\") then the string will be re-picked and start decaying from the beginning again, even if the envelopes don't otherwise restart.")), div$6({ style: { display: Config.enableAcousticSustain ? undefined : "none" } }, p$3("BeepBox comes with two slightly different sustain designs. You can select one here and press \"Okay\" to confirm it."), div$6({ class: "selectContainer", style: "width: 100%;" }, this._typeSelect)), div$6({ style: { display: Config.enableAcousticSustain ? "flex" : "none", "flex-direction": "row-reverse", "justify-content": "space-between" } }, this._okayButton), this._cancelButton);
+            this.container = div$6({ class: "prompt", style: "width: 300px;" }, div$6(h2$5("String Sustain"), p$3("This setting controls how quickly the picked string vibration decays."), p$3("Unlike most of TimeBox's instrument synthesizer features, a picked string cannot change frequency suddenly while maintaining its decay. If a tone's pitch changes suddenly (e.g. if the chord type is set to \"arpeggio\" or the transition type is set to \"continues\") then the string will be re-picked and start decaying from the beginning again, even if the envelopes don't otherwise restart.")), div$6({ style: { display: Config.enableAcousticSustain ? undefined : "none" } }, p$3("TimeBox comes with two slightly different sustain designs. You can select one here and press \"Okay\" to confirm it."), div$6({ class: "selectContainer", style: "width: 100%;" }, this._typeSelect)), div$6({ style: { display: Config.enableAcousticSustain ? "flex" : "none", "flex-direction": "row-reverse", "justify-content": "space-between" } }, this._okayButton), this._cancelButton);
             this._close = () => {
                 this._doc.undo();
             };
@@ -21809,11 +21809,11 @@ Config.chipWaves = toNameMap([
     class ExportPrompt {
         constructor(_doc) {
             this._doc = _doc;
-            this._fileName = input$3({ type: "text", style: "width: 10em;", value: "BeepBox-Song", maxlength: 250, "autofocus": "autofocus" });
+            this._fileName = input$3({ type: "text", style: "width: 10em;", value: "TimeBox-Song", maxlength: 250, "autofocus": "autofocus" });
             this._enableIntro = input$3({ type: "checkbox" });
             this._loopDropDown = input$3({ style: "width: 2em;", type: "number", min: "1", max: "4", step: "1" });
             this._enableOutro = input$3({ type: "checkbox" });
-            this._formatSelect = select$3({ style: "width: 100%;" }, option$3({ value: "wav" }, ".wav"), option$3({ value: "mp3" }, ".mp3"), option$3({ value: "midi" }, ".mid"), option$3({ value: "json" }, ".json (for any BeepBox version)"), option$3({ value: "html" }, ".html (opens BeepBox)"));
+            this._formatSelect = select$3({ style: "width: 100%;" }, option$3({ value: "wav" }, ".wav"), option$3({ value: "mp3" }, ".mp3"), option$3({ value: "midi" }, ".mid"), option$3({ value: "json" }, ".json (for any TimeBox version)"), option$3({ value: "html" }, ".html (opens TimeBox)"));
             this._progressBar = progress({ style: "display: none;", max: "1" });
             this._statusMessage = div$4({ style: "display: none; text-align: center;" });
             this._cancelButton = button$4({ class: "cancelButton" });
@@ -22067,9 +22067,9 @@ Config.chipWaves = toNameMap([
         }
         _exportToMidi() {
             const song = this._doc.song;
-            const midiTicksPerBeepBoxTick = 2;
-            const midiTicksPerBeat = midiTicksPerBeepBoxTick * Config.ticksPerPart * Config.partsPerBeat;
-            const midiTicksPerPart = midiTicksPerBeepBoxTick * Config.ticksPerPart;
+            const midiTicksPerTimeBoxTick = 2;
+            const midiTicksPerBeat = midiTicksPerTimeBoxTick * Config.ticksPerPart * Config.partsPerBeat;
+            const midiTicksPerPart = midiTicksPerTimeBoxTick * Config.ticksPerPart;
             const secondsPerMinute = 60;
             const microsecondsPerMinute = secondsPerMinute * 1000000;
             const beatsPerMinute = song.getBeatsPerMinute();
@@ -22139,7 +22139,7 @@ Config.chipWaves = toNameMap([
                     writeEventTime(0);
                     writer.writeUint8(255);
                     writer.writeMidi7Bits(1);
-                    writer.writeMidiAscii("Composed with https://www.beepbox.co");
+                    writer.writeMidiAscii("Composed with https://eliijosiohine.github.io/timebox-main - a mod of https://www.beepbox.co");
                     writeEventTime(0);
                     writer.writeUint8(255);
                     writer.writeMidi7Bits(81);
@@ -22572,7 +22572,7 @@ You should be redirected to the song at:<br /><br />
             this._doc = _doc;
             this._fileInput = input$2({ type: "file", accept: ".json,application/json,.mid,.midi,audio/midi,audio/x-midi" });
             this._cancelButton = button$3({ class: "cancelButton" });
-            this.container = div$3({ class: "prompt noSelection", style: "width: 300px;" }, h2$2("Import"), p$2({ style: "text-align: left; margin: 0.5em 0;" }, "BeepBox songs can be exported and re-imported as .json files. You could also use other means to make .json files for BeepBox as long as they follow the same structure."), p$2({ style: "text-align: left; margin: 0.5em 0;" }, "BeepBox can also (crudely) import .mid files. There are many tools available for creating .mid files. Shorter and simpler songs are more likely to work well."), this._fileInput, this._cancelButton);
+            this.container = div$3({ class: "prompt noSelection", style: "width: 300px;" }, h2$2("Import"), p$2({ style: "text-align: left; margin: 0.5em 0;" }, "TimeBox songs can be exported and re-imported as .json files. You could also use other means to make .json files for TimeBox as long as they follow the same structure."), p$2({ style: "text-align: left; margin: 0.5em 0;" }, "TimeBox can also (crudely) import .mid files. There are many tools available for creating .mid files. Shorter and simpler songs are more likely to work well."), this._fileInput, this._cancelButton);
             this._close = () => {
                 this._doc.undo();
             };
@@ -23073,12 +23073,12 @@ You should be redirected to the song at:<br /><br />
                                     updateCurrentMidiInterval(noteStartMidiTick);
                                     updateCurrentMidiNoteSize(noteStartMidiTick);
                                     const shiftedHeldPitch = heldPitches[0] * midiIntervalScale - channelBasePitch;
-                                    const initialBeepBoxPitch = Math.round((shiftedHeldPitch + currentMidiInterval) / intervalScale);
+                                    const initialTimeBoxPitch = Math.round((shiftedHeldPitch + currentMidiInterval) / intervalScale);
                                     const heldPitchOffset = Math.round(currentMidiInterval - channelBasePitch);
                                     let firstPin = makeNotePin(0, 0, Math.round(currentVelocity * currentMidiNoteSize));
                                     note.pins.push(firstPin);
                                     const potentialPins = [
-                                        { part: 0, pitch: initialBeepBoxPitch, size: firstPin.size, keyPitch: false, keySize: false }
+                                        { part: 0, pitch: initialTimeBoxPitch, size: firstPin.size, keyPitch: false, keySize: false }
                                     ];
                                     let prevPinIndex = 0;
                                     let prevPartPitch = (shiftedHeldPitch + currentMidiInterval) / intervalScale;
@@ -23156,14 +23156,14 @@ You should be redirected to the song at:<br /><br />
                                             }
                                             if (addPin) {
                                                 const toBePinned = potentialPins[addPinAtIndex];
-                                                note.pins.push(makeNotePin(toBePinned.pitch - initialBeepBoxPitch, toBePinned.part, toBePinned.size));
+                                                note.pins.push(makeNotePin(toBePinned.pitch - initialTimeBoxPitch, toBePinned.part, toBePinned.size));
                                                 prevPinIndex = addPinAtIndex;
                                             }
                                             potentialPins.push(currentPin);
                                         }
                                     }
                                     const lastToBePinned = potentialPins[potentialPins.length - 1];
-                                    note.pins.push(makeNotePin(lastToBePinned.pitch - initialBeepBoxPitch, lastToBePinned.part, lastToBePinned.size));
+                                    note.pins.push(makeNotePin(lastToBePinned.pitch - initialTimeBoxPitch, lastToBePinned.part, lastToBePinned.size));
                                     let maxPitch = channelMaxPitch;
                                     let minPitch = 0;
                                     for (const notePin of note.pins) {
@@ -23336,7 +23336,7 @@ You should be redirected to the song at:<br /><br />
             this._metronomeWhileRecording = input$1({ style: "width: 2em; margin-left: 1em;", type: "checkbox" });
             this._okayButton = button$1({ class: "okayButton", style: "width:45%;" }, "Okay");
             this._cancelButton = button$1({ class: "cancelButton" });
-            this.container = div$1({ class: "prompt noSelection recordingSetupPrompt", style: "width: 333px; text-align: right; max-height: 90%;" }, h2("Note Recording Setup"), div$1({ style: "display: grid; overflow-y: auto; overflow-x: hidden; flex-shrink: 1;" }, p("BeepBox can record notes as you perform them. You can start recording by pressing Ctrl+Space (or " + ctrlSymbol + "P)."), label({ style: "display: flex; flex-direction: row; align-items: center; height: 2em; justify-content: flex-end;" }, "Add ● record button next to ▶ play button:", this._showRecordButton), label({ style: "display: flex; flex-direction: row; align-items: center; height: 2em; justify-content: flex-end;" }, "Snap recorded notes to the song's rhythm:", this._snapRecordedNotesToRhythm), label({ style: "display: flex; flex-direction: row; align-items: center; height: 2em; justify-content: flex-end;" }, "Ignore notes not in the song's scale:", this._ignorePerformedNotesNotInScale), p("While recording, you can perform notes on your keyboard!"), label({ style: "display: flex; flex-direction: row; align-items: center; height: 2em; justify-content: flex-end;" }, "Keyboard layout:", div$1({ class: "selectContainer", style: "width: 65%; margin-left: 1em;" }, this._keyboardLayout)), this._keyboardLayoutPreview, p("When not recording, you can use the computer keyboard either for shortcuts (like C and V for copy and paste) or for performing notes, depending on this mode:"), label({ style: "display: flex; flex-direction: row; align-items: center; height: 2em; justify-content: flex-end;" }, div$1({ class: "selectContainer", style: "width: 100%;" }, this._keyboardMode)), p("Performing music takes practice! Try slowing the tempo and using this metronome to help you keep a rhythm."), label({ style: "display: flex; flex-direction: row; align-items: center; height: 2em; justify-content: flex-end;" }, "Hear metronome while recording:", this._metronomeWhileRecording), label({ style: "display: flex; flex-direction: row; align-items: center; height: 2em; justify-content: flex-end;" }, "Count-in 1 bar of metronome before recording:", this._metronomeCountIn), p("If you have a ", a$1({ href: "https://caniuse.com/midi", target: "_blank" }, "compatible browser"), " on a device connected to a MIDI keyboard, enable this option to use it to perform notes in BeepBox! (Or you could buy ", a$1({ href: "https://imitone.com/", target: "_blank" }, "Imitone"), " or ", a$1({ href: "https://vochlea.com/", target: "_blank" }, "Dubler"), " to hum notes into a microphone while wearing headphones!)"), label({ style: "display: flex; flex-direction: row; align-items: center; height: 2em; justify-content: flex-end;" }, "Enable MIDI performance:", this._enableMidi), p("The range of pitches available to play via your computer keyboard is affected by the octave scrollbar of the currently selected channel."), p("Recorded notes often overlap such that one note ends after the next note already started. In BeepBox, these notes get split into multiple notes which may sound different when re-played than they did when you were recording. To fix the sound, you can either manually clean up the notes in the pattern editor, or you could try enabling the \"transition type\" effect on the instrument and setting it to \"continue\"."), div$1({ style: `width: 100%; height: 80px; background: linear-gradient(rgba(0,0,0,0), ${ColorConfig.editorBackground}); position: sticky; bottom: 0; pointer-events: none;` })), div$1({ style: "display: flex; flex-direction: row-reverse; justify-content: space-between;" }, this._okayButton), this._cancelButton);
+            this.container = div$1({ class: "prompt noSelection recordingSetupPrompt", style: "width: 333px; text-align: right; max-height: 90%;" }, h2("Note Recording Setup"), div$1({ style: "display: grid; overflow-y: auto; overflow-x: hidden; flex-shrink: 1;" }, p("TimeBox can record notes as you perform them. You can start recording by pressing Ctrl+Space (or " + ctrlSymbol + "P)."), label({ style: "display: flex; flex-direction: row; align-items: center; height: 2em; justify-content: flex-end;" }, "Add ● record button next to ▶ play button:", this._showRecordButton), label({ style: "display: flex; flex-direction: row; align-items: center; height: 2em; justify-content: flex-end;" }, "Snap recorded notes to the song's rhythm:", this._snapRecordedNotesToRhythm), label({ style: "display: flex; flex-direction: row; align-items: center; height: 2em; justify-content: flex-end;" }, "Ignore notes not in the song's scale:", this._ignorePerformedNotesNotInScale), p("While recording, you can perform notes on your keyboard!"), label({ style: "display: flex; flex-direction: row; align-items: center; height: 2em; justify-content: flex-end;" }, "Keyboard layout:", div$1({ class: "selectContainer", style: "width: 65%; margin-left: 1em;" }, this._keyboardLayout)), this._keyboardLayoutPreview, p("When not recording, you can use the computer keyboard either for shortcuts (like C and V for copy and paste) or for performing notes, depending on this mode:"), label({ style: "display: flex; flex-direction: row; align-items: center; height: 2em; justify-content: flex-end;" }, div$1({ class: "selectContainer", style: "width: 100%;" }, this._keyboardMode)), p("Performing music takes practice! Try slowing the tempo and using this metronome to help you keep a rhythm."), label({ style: "display: flex; flex-direction: row; align-items: center; height: 2em; justify-content: flex-end;" }, "Hear metronome while recording:", this._metronomeWhileRecording), label({ style: "display: flex; flex-direction: row; align-items: center; height: 2em; justify-content: flex-end;" }, "Count-in 1 bar of metronome before recording:", this._metronomeCountIn), p("If you have a ", a$1({ href: "https://caniuse.com/midi", target: "_blank" }, "compatible browser"), " on a device connected to a MIDI keyboard, enable this option to use it to perform notes in TimeBox! (Or you could buy ", a$1({ href: "https://imitone.com/", target: "_blank" }, "Imitone"), " or ", a$1({ href: "https://vochlea.com/", target: "_blank" }, "Dubler"), " to hum notes into a microphone while wearing headphones!)"), label({ style: "display: flex; flex-direction: row; align-items: center; height: 2em; justify-content: flex-end;" }, "Enable MIDI performance:", this._enableMidi), p("The range of pitches available to play via your computer keyboard is affected by the octave scrollbar of the currently selected channel."), p("Recorded notes often overlap such that one note ends after the next note already started. In TimeBox, these notes get split into multiple notes which may sound different when re-played than they did when you were recording. To fix the sound, you can either manually clean up the notes in the pattern editor, or you could try enabling the \"transition type\" effect on the instrument and setting it to \"continue\"."), div$1({ style: `width: 100%; height: 80px; background: linear-gradient(rgba(0,0,0,0), ${ColorConfig.editorBackground}); position: sticky; bottom: 0; pointer-events: none;` })), div$1({ style: "display: flex; flex-direction: row-reverse; justify-content: space-between;" }, this._okayButton), this._cancelButton);
             this._close = () => {
                 this._doc.undo();
             };
@@ -23532,7 +23532,7 @@ You should be redirected to the song at:<br /><br />
     }
     const hideSelectMenuTitlesInOptions = !isOnMac;
     class SongEditor {
-        constructor(beepboxEditorContainer) {
+        constructor(timeboxEditorContainer) {
             this.doc = new SongDocument();
             this.prompt = null;
             this._keyboardLayout = new KeyboardLayout(this.doc);
@@ -23660,7 +23660,7 @@ You should be redirected to the song at:<br /><br />
             this._songSettingsArea = div({ class: "song-settings-area" }, div({ class: "editor-controls" }, div({ style: `margin: 3px 0; text-align: center; color: ${ColorConfig.secondaryText};` }, "Song Settings"), div({ class: "selectRow" }, span({ class: "tip", onclick: () => this._openPrompt("scale") }, "Scale:"), div({ class: "selectContainer" }, this._scaleSelect)), div({ class: "selectRow" }, span({ class: "tip", onclick: () => this._openPrompt("key") }, "Key:"), div({ class: "selectContainer" }, this._keySelect)), div({ class: "selectRow" }, span({ class: "tip", onclick: () => this._openPrompt("tempo") }, "Tempo:"), span({ style: "display: flex;" }, this._tempoSlider.container, this._tempoStepper)), div({ class: "selectRow" }, span({ class: "tip", onclick: () => this._openPrompt("rhythm") }, "Rhythm:"), div({ class: "selectContainer" }, this._rhythmSelect))));
             this._instrumentSettingsArea = div({ class: "instrument-settings-area" }, this._instrumentSettingsGroup);
             this._settingsArea = div({ class: "settings-area noSelection" }, div({ class: "version-area" }, div({ style: `text-align: center; margin: 3px 0; color: ${ColorConfig.secondaryText};` }, EditorConfig.versionDisplayName, " ", a({ class: "tip", target: "_blank", href: EditorConfig.releaseNotesURL }, EditorConfig.version))), div({ class: "play-pause-area" }, div({ class: "playback-bar-controls" }, this._playButton, this._pauseButton, this._recordButton, this._stopButton, this._prevBarButton, this._nextBarButton), div({ class: "playback-volume-controls" }, span({ class: "volume-speaker" }), this._volumeSlider.container)), this._menuArea, this._songSettingsArea, this._instrumentSettingsArea);
-            this.mainLayer = div({ class: "beepboxEditor", tabIndex: "0" }, this._patternArea, this._trackArea, this._settingsArea, this._promptContainer);
+            this.mainLayer = div({ class: "timeboxEditor", tabIndex: "0" }, this._patternArea, this._trackArea, this._settingsArea, this._promptContainer);
             this._wasPlaying = false;
             this._currentPromptName = null;
             this._highlightedInstrumentIndex = -1;
@@ -24954,7 +24954,7 @@ this._tempoSlider.value = (100.0 * Math.log(this.doc.song.tempo / Config.tempoMi
             this.doc.notifier.watch(this.whenUpdated);
             // Make the editor available immediately so the time signature display
             // can read song state on first render, not just after the first resize.
-            window.beepboxEditor = this;
+            window.timeboxEditor = this;
             window.addEventListener("resize", this._whenResized);
             window.requestAnimationFrame(this.updatePlayButton);
             if (!("share" in navigator)) {
@@ -25062,7 +25062,7 @@ this._tempoSlider.value = (100.0 * Math.log(this.doc.song.tempo / Config.tempoMi
                 autoPlayOption.setAttribute("hidden", "");
             }
             this._updateLayoutOption();
-            beepboxEditorContainer.appendChild(this.mainLayer);
+            timeboxEditorContainer.appendChild(this.mainLayer);
             this.whenUpdated();
             this.mainLayer.focus();
             if (!isMobile && this.doc.prefs.autoPlay) {
@@ -25226,7 +25226,7 @@ this._tempoSlider.value = (100.0 * Math.log(this.doc.song.tempo / Config.tempoMi
     exports.Song = Song;
     exports.SongDocument = SongDocument;
     exports.SongEditor = SongEditor;
-	//window.beepboxEditor = new SongEditor(document.getElementById("beepbox") || document.body); // safety
+	//window.timeboxEditor = new SongEditor(document.getElementById("timebox") || document.body); // safety
     exports.Synth = Synth;
     exports.fastFourierTransform = fastFourierTransform;
     exports.forwardRealFourierTransform = forwardRealFourierTransform;
@@ -25237,4 +25237,4 @@ this._tempoSlider.value = (100.0 * Math.log(this.doc.song.tempo / Config.tempoMi
     return exports;
 
 })({});
-//# sourceMappingURL=beepbox_editor.js.map
+//# sourceMappingURL=timebox_editor.js.map
