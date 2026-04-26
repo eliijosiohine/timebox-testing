@@ -16498,40 +16498,6 @@ Config.chipWaves = toNameMap([
             this.selectionUpdated();
         }
         setPattern(pattern) {
-            // Guard: if the user is placing a non-empty pattern onto a bar whose time
-            // signature differs from every bar that currently uses that pattern, we must
-            // clone & stretch rather than share the pattern directly.
-            if (pattern !== 0) {
-                const song = this._doc.song;
-                const bar = this.boxSelectionBar;
-                const channelIndex = this.boxSelectionChannel;
-                const srcPattern = song.channels[channelIndex].patterns[pattern - 1];
-                if (srcPattern != null && srcPattern.notes.length > 0) {
-                    const destBeats = song.getEffectiveBeatsPerBar(bar);
-                    // Find the beats-per-bar used by any bar that already references
-                    // this pattern number on this channel.
-                    let srcBeats = null;
-                    for (let bi = 0; bi < song.barCount; bi++) {
-                        if (song.channels[channelIndex].bars[bi] === pattern) {
-                            const bitsAtBar = song.getEffectiveBeatsPerBar(bi);
-                            if (srcBeats === null) {
-                                srcBeats = bitsAtBar;
-                            } else if (srcBeats !== bitsAtBar) {
-                                // The pattern is already used across mismatched bars —
-                                // use the first one we found as the authoritative sig.
-                                break;
-                            }
-                        }
-                    }
-                    if (srcBeats !== null && srcBeats !== destBeats) {
-                        // Time signature mismatch — clone and stretch into a new slot.
-                        this._doc.record(new ChangeCloneAndStretchForTimeSig(
-                            this._doc, pattern, bar, channelIndex,
-                            srcBeats, destBeats));
-                        return;
-                    }
-                }
-            }
             this._doc.record(new ChangePatternNumbers(this._doc, pattern, this.boxSelectionBar, this.boxSelectionChannel, this.boxSelectionWidth, this.boxSelectionHeight));
         }
         nextDigit(digit, forInstrument) {
@@ -17996,6 +17962,18 @@ Config.chipWaves = toNameMap([
                     if (Math.sqrt(dx * dx + dy * dy) > 5) {
                         this._mouseDragging = true;
                         this._mouseHorizontal = Math.abs(dx) >= Math.abs(dy);
+                        // Fire the fork exactly once, as a committed record, the moment
+                        // a drag on an existing note begins. This must NOT be inside the
+                        // prospective-change sequence (which is undone/rebuilt every frame).
+                        if (this._cursor.curNote !== null || this._draggingSelectionContents) {
+                            const forkChange = new ChangeForkPatternForTimeSig(this._doc, this._doc.channel, this._doc.bar);
+                            if (!forkChange.isNoop()) {
+                                this._doc.record(forkChange, false);
+                                // Re-register the prospective drag change so continuousState
+                                // remains valid for the rest of the pointer move handling.
+                                this._doc.setProspectiveChange(this._dragChange);
+                            }
+                        }
                     }
                 }
                 if (this._mouseDragging && event.pointer.isDown && this._cursor.valid && continuousState) {
@@ -18003,8 +17981,6 @@ Config.chipWaves = toNameMap([
                     const sequence = new ChangeSequence();
                     this._dragChange = sequence;
                     this._doc.setProspectiveChange(this._dragChange);
-                    // Before any note edit, fork the pattern if it's shared with bars of a different time sig.
-                    sequence.append(new ChangeForkPatternForTimeSig(this._doc, this._doc.channel, this._doc.bar));
                     const minDivision = this._getMinDivision();
                     const currentPart = this._snapToMinDivision(this._mouseX / this._partWidth);
                     if (this._draggingStartOfSelection) {
@@ -18022,7 +17998,6 @@ Config.chipWaves = toNameMap([
                             const sequence = new ChangeSequence();
                             this._dragChange = sequence;
                             this._doc.setProspectiveChange(this._dragChange);
-                            sequence.append(new ChangeForkPatternForTimeSig(this._doc, this._doc.channel, this._doc.bar));
                             const notesInScale = Config.scales[this._doc.song.scale].flags.filter(x => x).length;
                             const pitchRatio = this._doc.song.getChannelIsNoise(this._doc.channel) ? 1 : 12 / notesInScale;
                             const draggedParts = Math.round((this._mouseX - this._mouseXStart) / (this._partWidth * minDivision)) * minDivision;
