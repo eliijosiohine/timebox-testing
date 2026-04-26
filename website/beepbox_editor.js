@@ -14349,6 +14349,57 @@ Config.chipWaves = toNameMap([
                 doc.song.barTimeSignatures[barIndex] = newVal;
                 doc.notifier.changed();
                 this._didSomething();
+                // After changing the time sig of this bar, fork any pattern on any
+                // channel that is now shared with bars of a different time signature.
+                // We do this inline (not as UndoableChange) because ChangeBarTimeSignature
+                // itself is not undoable — the whole group it belongs to handles undo.
+                const song = doc.song;
+                const thisBeats = song.getEffectiveBeatsPerBar(barIndex);
+                for (let ci = 0; ci < song.getChannelCount(); ci++) {
+                    const currentPatternIndex = song.channels[ci].bars[barIndex];
+                    if (currentPatternIndex === 0) continue;
+                    const srcPattern = song.channels[ci].patterns[currentPatternIndex - 1];
+                    if (srcPattern.notes.length === 0) continue;
+                    // Check if any other bar shares this pattern with a different sig.
+                    let mismatchFound = false;
+                    for (let bi = 0; bi < song.barCount; bi++) {
+                        if (bi === barIndex) continue;
+                        if (song.channels[ci].bars[bi] === currentPatternIndex) {
+                            if (song.getEffectiveBeatsPerBar(bi) !== thisBeats) {
+                                mismatchFound = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!mismatchFound) continue;
+                    // Find an empty unused slot, or expand patternsPerChannel.
+                    let newSlotIndex = null;
+                    for (let pi = 1; pi <= song.patternsPerChannel; pi++) {
+                        let used = false;
+                        for (let bi = 0; bi < song.barCount; bi++) {
+                            if (song.channels[ci].bars[bi] === pi) { used = true; break; }
+                        }
+                        if (!used && song.channels[ci].patterns[pi - 1].notes.length === 0) {
+                            newSlotIndex = pi;
+                            break;
+                        }
+                    }
+                    if (newSlotIndex === null) {
+                        const newCount = song.patternsPerChannel + 1;
+                        for (let i = 0; i < song.getChannelCount(); i++) {
+                            while (song.channels[i].patterns.length < newCount) {
+                                song.channels[i].patterns.push(new Pattern());
+                            }
+                        }
+                        song.patternsPerChannel = newCount;
+                        newSlotIndex = newCount;
+                    }
+                    // Deep-copy notes into the new slot and re-point this bar.
+                    const newPattern = song.channels[ci].patterns[newSlotIndex - 1];
+                    newPattern.instruments = srcPattern.instruments.concat();
+                    newPattern.notes = srcPattern.cloneNotes();
+                    song.channels[ci].bars[barIndex] = newSlotIndex;
+                }
             }
         }
     }
